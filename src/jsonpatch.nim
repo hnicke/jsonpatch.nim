@@ -22,17 +22,36 @@ type
     operations: seq[Operation]
 
   JsonPatchError* = object of CatchableError
-  JsonPatchParseError* = object of JsonPatchError
+  InvalidJsonPatchError* = object of CatchableError
+
+
+proc check(o: Operation) =
+  proc abort(msg: string) =
+    raise newException(InvalidJsonPatchError, &"Operation {o} is invalid: {msg}")
+  case o.op
+  of Add:
+    if o.value.isNone: abort("Missing 'value'")
+  else:
+    discard
+
+proc check(p: JsonPatch) =
+  p.operations.apply(check)
+
+
+proc to*[T: Operation](node: JsonNode, t: typedesc[T]): Operation =
+  return Operation()
 
 proc to*[T: JsonPatch](node: JsonNode, t: typedesc[T]): T =
   try:
     case node.kind
     of JArray: 
-      JsonPatch(operations: node.to(seq[Operation]))
+      result = JsonPatch(operations: node.to(seq[Operation]))
+      result.check()
+
     else: 
-      raise newException(JsonPatchParseError, &"Json patch must be an array, but was '{node.kind}'")
+      raise newException(InvalidJsonPatchError, &"Json patch must be an array, but was '{node.kind}'")
   except KeyError:
-    raise newException(JsonPatchParseError, getCurrentExceptionMsg())
+    raise newException(InvalidJsonPatchError, getCurrentExceptionMsg())
 
 
 proc `%`*(patch: JsonPatch): JsonNode =
@@ -46,7 +65,11 @@ proc `%`*(patch: JsonPatch): JsonNode =
 
 
 func apply(document: JsonNode, operation: Operation): JsonNode =
-  document
+  case operation.op
+  of Add:
+    document
+  else:
+    document
 
 func applyPatch*(document: JsonNode, patch: JsonPatch): JsonNode =
   if len(patch.operations) == 0:

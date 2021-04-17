@@ -4,17 +4,22 @@ import
 
 test "patch must be an array of something":
   let j = %*{"not": "array"}
-  expect JsonPatchParseError:
+  expect InvalidJsonPatchError:
     discard j.to(JsonPatch)
 
-test "patch operation must have required 'op' field":
+test "operation must have required 'op' field":
   let j = %*[{"path": "/"}]
-  expect JsonPatchParseError:
+  expect InvalidJsonPatchError:
     discard j.to(JsonPatch)
 
-test "patch operation must have required 'path' field":
+test "operation must have required 'path' field":
   let j = %*[{"op": "add"}]
-  expect JsonPatchParseError:
+  expect InvalidJsonPatchError:
+    discard j.to(JsonPatch)
+
+test "add operation must have required 'value' field":
+  let j = %*[{"op": "add", "path": ""}]
+  expect InvalidJsonPatchError:
     discard j.to(JsonPatch)
 
 test "successful unmarshal and marshal":
