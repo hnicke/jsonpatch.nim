@@ -1,12 +1,7 @@
 import
-  std / [json, options],
-  strformat,
-  strutils
+  std / [json, options]
 
 type
-  JsonPointer = object
-    segments: seq[string]
-
   OperationKind {.pure.} = enum
     Add = "add"
     Remove = "remove"
@@ -28,17 +23,11 @@ type
   JsonPatchError* = object of CatchableError
   JsonPatchParseError* = object of JsonPatchError
 
-func toJsonPointer(path: string): JsonPointer =
-  return JsonPointer(segments: path.split("/"))
-
-func parseError(msg: string): ref JsonPatchParseError =
-  return newException(JsonPatchParseError, msg)
-
 proc to*[T: JsonPatch](node: JsonNode, t: typedesc[T]): T =
   try:
     JsonPatch(operations: node.to(seq[Operation]))
   except KeyError:
-    raise parseError(getCurrentExceptionMsg())
+    raise newException(JsonPatchParseError, getCurrentExceptionMsg())
 
 
 proc `%`*(patch: JsonPatch): JsonNode =
