@@ -1,5 +1,6 @@
 import
-  std / [json, options]
+  std / [json, options, strformat],
+  sequtils
 
 type
   OperationKind {.pure.} = enum
@@ -25,7 +26,11 @@ type
 
 proc to*[T: JsonPatch](node: JsonNode, t: typedesc[T]): T =
   try:
-    JsonPatch(operations: node.to(seq[Operation]))
+    case node.kind
+    of JArray: 
+      JsonPatch(operations: node.to(seq[Operation]))
+    else: 
+      raise newException(JsonPatchParseError, &"Json patch must be an array, but was '{node.kind}'")
   except KeyError:
     raise newException(JsonPatchParseError, getCurrentExceptionMsg())
 
@@ -39,8 +44,11 @@ proc `%`*(patch: JsonPatch): JsonNode =
         jsonOperation.add(key, value)
     result.add(jsonOperation)
 
-# func diff*(first: JsonNode, second: JsonNode): JsonPatch =
-  # return JsonPatch()
+
+func apply(document: JsonNode, operation: Operation): JsonNode =
+  document
 
 func applyPatch*(document: JsonNode, patch: JsonPatch): JsonNode =
-  document
+  if len(patch.operations) == 0:
+    return document
+  result = patch.operations.foldl(a.apply(b), document)
