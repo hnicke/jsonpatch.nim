@@ -1,9 +1,6 @@
 import
-  unittest,
-  json,
   jsonpatch,
-  strformat,
-  options
+  std / [unittest, json, strformat, options]
 
 type TestCase = object
   comment: Option[string]
