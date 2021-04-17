@@ -17,8 +17,11 @@ proc fromFile(path: string): seq[TestCase] =
     .parseJson()
     .to(seq[TestCase])
 
-
-for file in ["spec_tests.json", "tests.json"]:
+# const testFiles = ["custom_tests.json", "spec_tests.json", "tests.json"]
+# const testFiles = ["custom_tests.json"]
+# const testFiles = ["spec_tests.json"]
+const testFiles = ["spec_tests_dev.json"]
+for file in testFiles:
   let testCases = fromFile(file)
   for testCase in testCases:
     test(testCase.comment.get("[no description]")):
@@ -27,12 +30,12 @@ for file in ["spec_tests.json", "tests.json"]:
       check testCase.expected.isSome == testCase.error.isNone
       try:
         let patch = testCase.patch.to(JsonPatch)
-        let patchedDoc = testCase.doc.applyPatch(patch)
+        let actualDoc = testCase.doc.applyPatch(patch)
         if testCase.error.isSome or testCase.expected.isNone:
           raise newException(Defect,
-            &"Should have raised error: {testCase.error.get()}, but returned result {$patchedDoc}")
+            &"Should have raised error: {testCase.error.get()}, but returned result {$actualDoc}")
         let expected = testCase.expected.get()
-        check expected == patchedDoc
+        check expected == actualDoc
       except:
         if testCase.error.isNone:
           raise

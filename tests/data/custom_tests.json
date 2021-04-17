@@ -1,0 +1,14 @@
+[
+  {
+    "comment": "Add scalar to array",
+    "doc": [1],
+    "patch": [{ "op": "add", "path": "/1", "value": 2 }],
+    "expected": [1, 2]
+  },
+  {
+    "comment": "Add scalar to object",
+    "doc": { "a": 1 },
+    "patch": [{ "op": "add", "path": "/b", "value": 2 }],
+    "expected":{"a": 1, "b": 2}
+  }
+]

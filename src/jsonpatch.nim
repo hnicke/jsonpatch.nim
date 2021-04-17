@@ -1,8 +1,9 @@
 import
-  std / [json, options, strformat],
-  sequtils
+  jsonpatch / jsonpointer,
+  std / [json, options, strformat, sequtils, strutils]
 
 type
+
   OperationKind {.pure.} = enum
     Add = "add"
     Remove = "remove"
@@ -27,7 +28,8 @@ type
 
 proc check(o: Operation) =
   proc abort(msg: string) =
-    raise newException(InvalidJsonPatchError, &"Operation {o} is invalid: {msg}")
+    raise newException(InvalidJsonPatchError,
+        &"Operation {o} is invalid: {msg}")
   case o.op
   of Add:
     if o.value.isNone: abort("Missing 'value'")
@@ -44,12 +46,13 @@ proc to*[T: Operation](node: JsonNode, t: typedesc[T]): Operation =
 proc to*[T: JsonPatch](node: JsonNode, t: typedesc[T]): T =
   try:
     case node.kind
-    of JArray: 
+    of JArray:
       result = JsonPatch(operations: node.to(seq[Operation]))
       result.check()
 
-    else: 
-      raise newException(InvalidJsonPatchError, &"Json patch must be an array, but was '{node.kind}'")
+    else:
+      raise newException(InvalidJsonPatchError,
+          &"Json patch must be an array, but was '{node.kind}'")
   except KeyError:
     raise newException(InvalidJsonPatchError, getCurrentExceptionMsg())
 
@@ -63,10 +66,50 @@ proc `%`*(patch: JsonPatch): JsonNode =
         jsonOperation.add(key, value)
     result.add(jsonOperation)
 
-
-func apply(document: JsonNode, operation: Operation): JsonNode =
-  case operation.op
+func apply(document: JsonNode, o: Operation): JsonNode =
+  let jsonPointer = o.path.toJsonPointer()
+  case o.op
   of Add:
+    let value = o.value.get()
+    if jsonPointer.pointsToRoot():
+      return value
+    var current = document
+    var parent: JsonNode 
+    # handle all intermediate nodes
+    for idx, segment in jsonPointer.tokens[0..jsonPointer.tokens.len-2]:
+      if segment == "":
+        continue
+      case current.kind
+      of JObject:
+        let intermediateNode = current.getOrDefault(segment)
+        if intermediateNode == nil:
+          let nextSegment = jsonPointer.tokens[idx + 1]
+          case nextSegment.tokenContainerType()
+          of JsonArray:
+            current.add(segment, newJArray())
+          of JsonObject:
+            current.add(segment, newJObject())
+        parent = current
+        current = current[segment]
+      of JArray:
+
+        # if segment == "-":
+          # currentNode = currentNode.
+        discard
+      # currentNode.
+      else:
+        raise newException(Defect,"not implemented")
+    # now, handle last segment
+    let key = jsonPointer.tokens[^1]
+    case current.kind
+    of JArray:
+      let idx = parseInt(key)
+      current.elems.insert(value, idx)
+    of JObject:
+      current.add(key, value)
+    else:
+        raise newException(Defect,"not implemented")
+
     document
   else:
     document
