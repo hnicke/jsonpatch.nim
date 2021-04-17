@@ -1,7 +1,11 @@
-# This is just an example to get you started. A typical library package
-# exports the main API in this file. Note that you cannot rename this file
-# but you can remove it if you wish.
+import json
 
-proc add*(x, y: int): int =
-  ## Adds two files together.
-  return x + y
+type 
+  JsonPatch* = object
+  JsonPatchError* = object of CatchableError
+
+func diff*(first: JsonNode, second: JsonNode): JsonPatch =
+  JsonPatch()
+
+func applyPatch*(document: JsonNode, patch: JsonPatch): JsonNode =
+  document
