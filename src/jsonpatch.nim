@@ -76,7 +76,7 @@ func apply(document: JsonNode, o: Operation): JsonNode =
     var current = document
     var parent: JsonNode 
     # handle all intermediate nodes
-    for idx, segment in jsonPointer.tokens[0..jsonPointer.tokens.len-2]:
+    for idx, segment in jsonPointer.intermediateNodes():
       if segment == "":
         continue
       case current.kind
@@ -103,6 +103,8 @@ func apply(document: JsonNode, o: Operation): JsonNode =
     let key = jsonPointer.tokens[^1]
     case current.kind
     of JArray:
+      # TODO handle dash
+      # TODO handle cast error
       let idx = parseInt(key)
       current.elems.insert(value, idx)
     of JObject:
@@ -111,6 +113,8 @@ func apply(document: JsonNode, o: Operation): JsonNode =
         raise newException(Defect,"not implemented")
 
     document
+  # of Remove:
+
   else:
     document
 

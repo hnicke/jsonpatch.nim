@@ -1,4 +1,4 @@
-import std/[strutils, sequtils]
+import std/[strutils, sequtils, json]
 
 type
   JsonPointer = object
@@ -26,3 +26,11 @@ proc tokenContainerType*(token: string): JsonContainer =
 
 proc pointsToRoot*(p: JsonPointer): bool =
     return len(p.tokens) == 1 and p.tokens[0] == ""
+
+iterator intermediateNodes*(p: JsonPointer): (int, string) =
+    for idx, token in p.tokens[0..p.tokens.len-2]:
+      yield (idx, token)
+
+proc deleteAt(n: JsonNode, p: JsonPointer) =
+  # TODO traverse node along pointer and unlink target node.
+  # reuse traversal algorithm from jsonpatch.nim
