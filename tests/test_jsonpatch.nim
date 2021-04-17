@@ -25,6 +25,8 @@ proc fromFile(path: string): seq[TestCase] =
 for file in ["spec_tests.json", "tests.json"]:
   let testCases = fromFile(file)
   for testCase in testCases:
+    if testCase.disabled.get(false):
+      continue
     test(testCase.comment.get("[no description]")):
       check testCase.expected.isSome == testCase.error.isNone
       try:
