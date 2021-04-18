@@ -24,22 +24,16 @@ proc parent*(jsonPointer: JsonPointer): Option[JsonPointer] =
   of 0: none(JsonPointer)
   else: some JsonPointer(segments: jsonPointer.segments[0..jsonPointer.segments.len - 2])
 
-func resolveParent*(root: JsonNode, jsonPointer: JsonPointer): Option[JsonNode] =
-  ## Returns the parent of the node which is represented by the JSON Pointer.
-    # TODO handle case where pointer is empty: ""
-    # if segment == "":
-      # continue
-  var segments = jsonPointer.segments.toDeque()
+func resolve*(root: JsonNode, jsonPointer: JsonPointer): Option[JsonNode] =
+  ## Returns the parent of the node which is represented by given JSON Pointer.
   var node = root
-  while segments.len > 1:
-    let segment = segments.popFirst()
+  for segment in jsonPointer.segments:
     case node.kind
     of JObject:
       try:
         node = node[segment]
       except KeyError:
-        # handle missing key
-        assert false, "not implemented"
+        return none(JsonNode)
     of JArray:
       if segment == "-":
         if node.len > 0:
@@ -60,3 +54,7 @@ func resolveParent*(root: JsonNode, jsonPointer: JsonPointer): Option[JsonNode] 
       assert false, "not implemented"
   return some(node)
 
+
+func resolve*(root: JsonNode, jsonPointer: string): Option[JsonNode] =
+  ## Returns the parent of the node which is represented by given string, interpreted as JSON Pointer.
+  root.resolve(jsonPointer.toJsonPointer())

@@ -1,65 +1,58 @@
 import
-    std / [unittest, json, options],
-    jsonpatch / jpointer
+  std / [unittest, json, options],
+  jsonpatch / jpointer
 
 test "get parent":
-    let child = "/a/b".toJsonPointer()
-    let parent = "/a".toJsonPointer()
-    check parent == child.parent.get
+  let child = "/a/b".toJsonPointer()
+  let parent = "/a".toJsonPointer()
+  check parent == child.parent.get
 
 test "get parent":
-    let child = "/a".toJsonPointer()
-    let parent = "".toJsonPointer()
-    check parent == child.parent.get
+  let child = "/a".toJsonPointer()
+  let parent = "".toJsonPointer()
+  check parent == child.parent.get
 
 test "parent of root doesn't exist":
-    check "".toJsonPointer().parent.isNone()
+  check "".toJsonPointer().parent.isNone()
 
-test "resolve parent":
-    let parent = %* {"a": {"b": "c"}}
-    let root = parent
-    let actualParent = root.resolveParent("/a".toJsonPointer()).get
-    check parent == actualParent
+test "resolve":
+  let expected = %* {"b": "c"}
+  let root = %* {"a": expected}
+  check expected == root.resolve("/a").get
 
-test "resolve parent":
-   let parent = %* {"b": {"c": "d"}}
-   let root = %* {"a": parent}
-   let actualParent = root.resolveParent("/a/b".toJsonPointer()).get
-   check parent == actualParent
+test "resolve":
+  let expected = %* {"c": "d"}
+  let root = %* {"a": {"b": expected}}
+  check expected == root.resolve("/a/b").get
 
-test "root":
-    let parent = %* {"a": {"b": "c"}}
-    let root = parent
-    let actualParent = root.resolveParent("".toJsonPointer()).get
-    check parent == actualParent
+test "resolve - missing key":
+  let root = %* {"a": "b"}
+  check root.resolve("/b").isNone
 
-test "resolve parent with array access":
-   let parent = %* {"b": {"c": "d"}}
-   let root = %* {"a": [parent]}
-   let actualParent = root.resolveParent("/a/0/b".toJsonPointer()).get
-   check parent == actualParent
+test "resolve root":
+  let expected = %* {"a": {"b": "c"}}
+  check expected == expected.resolve("").get
 
-test "resolve parent with non-existing array index":
-   let parent = %* {"b": {"c": "d"}}
-   let root = %* {"a": [parent]}
-   check root.resolveParent("/a/1/b".toJsonPointer()).isNone
+test "resolve with array access":
+  let expected = %* {"c": "d"}
+  let root = %* {"a": [{"b": expected}]}
+  check expected == root.resolve("/a/0/b").get
 
-test "resolve parent with non-integer array index":
-   let parent = %* {"b": {"c": "d"}}
-   let root = %* {"a": [parent]}
-   expect JsonPointerResolveError:
-    discard root.resolveParent("/a/n/b".toJsonPointer()).isNone
+test "resolve with non-existing array index":
+  let root = %* {"a": [{"b": "d"}]}
+  check root.resolve("/a/1/b").isNone
 
-test "resolve parent using '-' as array index":
-   let parent = %* {"b": {"c": "d"}}
-   let root = %* {"a": [0, parent]}
-   check parent == root.resolveParent("/a/-/b".toJsonPointer()).get
+test "resolve with non-integer array index":
+  let root = %* {"a": [{"b": "c"}]}
+  expect JsonPointerResolveError:
+    discard root.resolve("/a/n/b").isNone
+
+test "resolve using '-' as array index":
+  let expected = %* {"b": "c"}
+  let root = %* {"a": [0, expected]}
+  check expected == root.resolve("/a/-").get
 
 
 test "resolve parent using '-' as array index, but array is empty":
    let root = %* {"a": []}
-   check root.resolveParent("/a/-/b".toJsonPointer()).isNone
-
-test "resolve parent of":
-   let root = %* {}
-   check root.resolveParent("".toJsonPointer()).isNone
+   check root.resolve("/a/-/b").isNone
