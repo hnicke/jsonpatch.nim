@@ -30,7 +30,7 @@ for file in testFiles:
       check testCase.expected.isSome == testCase.error.isNone
       try:
         let patch = testCase.patch.to(JsonPatch)
-        let actualDoc = testCase.doc.applyPatch(patch)
+        let actualDoc = testCase.doc.patch(patch)
         if testCase.error.isSome or testCase.expected.isNone:
           raise newException(Defect,
             &"Should have raised error: {testCase.error.get()}, but returned result {$actualDoc}")

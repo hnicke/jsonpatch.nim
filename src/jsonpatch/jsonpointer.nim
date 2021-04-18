@@ -1,41 +1,76 @@
-import std/[strutils, sequtils, json]
+import
+  std/[json, strutils, strformat, sequtils, options]
 
 type
-  JsonPointer = object
-    tokens*: seq[string]
+  JsonPointer* = object
+    segments: seq[string]
+  JsonPointerKey* = object
+    case kind*: JsonNodeKind
+    of JObject: member*: string
+    of JArray: idx*: int
+    else: discard
+  JsonPointerResolveError* = object of CatchableError
 
 proc toJsonPointer*(jsonPointer: string): JsonPointer =
   ## See https://tools.ietf.org/html/rfc6901
-  let tokens = jsonPointer
+  var segments = jsonPointer
     .split("/")
     .mapIt(it.multiReplace(("~1", "/"), ("~0", "~")))
-  return JsonPointer(tokens: tokens)
+  if segments.len > 0:
+    segments.delete(0)
+  return JsonPointer(segments: segments)
 
-type JsonContainer* = enum
-  JsonArray
-  JsonObject
+proc `$`*(p: JsonPointer): string =
+  p.segments.join("/")
 
-proc tokenContainerType*(token: string): JsonContainer =
-  try:
-    if token == "-" or (typeof(parseInt(token)) is int):
-      return JsonArray
+proc parent*(jsonPointer: JsonPointer): Option[JsonPointer] =
+  case jsonPointer.segments.len
+  of 0: none(JsonPointer)
+  else: some JsonPointer(segments: jsonPointer.segments[0..^2])
+
+func parseChildKey*(node: JsonNode, pointerSegment: string): JsonPointerKey =
+  result = JsonPointerKey(kind: node.kind)
+  case node.kind
+  of JObject:
+    result.member = pointerSegment
+  of JArray:
+    if pointerSegment == "-":
+      result.idx = node.len - 1
     else:
-      raise newException(ValueError, "")
-  except ValueError:
-    return JsonObject
+      try:
+        result.idx = parseInt(pointerSegment)
+      except ValueError:
+        raise newException(JsonPointerResolveError,
+            &"Segment '{pointerSegment}' is not a valid array index")
+  else: discard
 
-proc pointsToRoot*(p: JsonPointer): bool =
-  return len(p.tokens) == 1 and p.tokens[0] == ""
+func leafSegment*(p: JsonPointer): string = p.segments[^1]
 
-iterator intermediateNodes*(p: JsonPointer): (int, string) =
-  for idx, token in p.tokens[0..p.tokens.len-2]:
-    yield (idx, token)
+func resolve*(root: JsonNode, jsonPointer: JsonPointer): Option[JsonNode] =
+  ## Returns the parent of the node which is represented by given JSON Pointer.
+  var node = root
+  for segment in jsonPointer.segments:
+    let key = node.parseChildKey(segment)
+    case key.kind
+    of JObject:
+      try:
+        node = node[key.member]
+      except KeyError:
+        return none(JsonNode)
+    of JArray:
+      if 0 <= key.idx and key.idx < node.len:
+        node = node[key.idx]
+      else:
+        return none(JsonNode)
+    else:
+      # TODO implement
+      assert false, "not implemented"
+  return some(node)
 
 
-proc deleteAt(n: JsonNode, p: JsonPointer) =
-  # if p.pointsToRoot():
-    # return value
+func resolve*(root: JsonNode, jsonPointer: string): Option[JsonNode] =
+  ## Returns the parent of the node which is represented by given string, interpreted as JSON Pointer.
+  root.resolve(jsonPointer.toJsonPointer())
 
-# TODO traverse node along pointer and unlink target node.
-  # reuse traversal algorithm from jsonpatch.nim
+func pointsToRoot*(p: JsonPointer): bool = p.segments.len == 0
 

@@ -1,6 +1,6 @@
 import
   std / [unittest, json, options],
-  jsonpatch / jpointer
+  jsonpatch / jsonpointer
 
 test "get parent":
   let child = "/a/b".toJsonPointer()

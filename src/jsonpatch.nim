@@ -12,7 +12,7 @@ type
     Copy = "copy"
     Test = "test"
 
-  # TODO use objects variants once https://github.com/nim-lang/RFCs/issues/368 is implemented
+  # maybe use objects variants once https://github.com/nim-lang/RFCs/issues/368 is implemented
   Operation = object
     op: OperationKind
     path: string
@@ -66,51 +66,27 @@ proc `%`*(patch: JsonPatch): JsonNode =
         jsonOperation.add(key, value)
     result.add(jsonOperation)
 
-func apply(document: JsonNode, o: Operation): JsonNode =
+func patch(document: JsonNode, o: Operation): JsonNode =
   let jsonPointer = o.path.toJsonPointer()
   case o.op
   of Add:
     let value = o.value.get()
     if jsonPointer.pointsToRoot():
       return value
-    var current = document
-    var parent: JsonNode 
-    # handle all intermediate nodes
-    for idx, segment in jsonPointer.intermediateNodes():
-      if segment == "":
-        continue
-      case current.kind
-      of JObject:
-        let intermediateNode = current.getOrDefault(segment)
-        if intermediateNode == nil:
-          let nextSegment = jsonPointer.tokens[idx + 1]
-          case nextSegment.tokenContainerType()
-          of JsonArray:
-            current.add(segment, newJArray())
-          of JsonObject:
-            current.add(segment, newJObject())
-        parent = current
-        current = current[segment]
+    let parent = document.resolve(jsonPointer.parent.get)
+    if parent.isSome:
+      let key = parent.get.parseChildKey(jsonPointer.leafSegment())
+      case key.kind
       of JArray:
-
-        # if segment == "-":
-          # currentNode = currentNode.
-        discard
-      # currentNode.
+        parent.get.elems.insert(value, key.idx)
+      of JObject:
+        parent.get.add(key.member, value)
       else:
-        raise newException(Defect,"not implemented")
-    # now, handle last segment
-    let key = jsonPointer.tokens[^1]
-    case current.kind
-    of JArray:
-      # TODO handle dash
-      # TODO handle cast error
-      let idx = parseInt(key)
-      current.elems.insert(value, idx)
-    of JObject:
-      current.add(key, value)
+        # TODO implement
+        raise newException(Defect, "not implemented")
     else:
-        raise newException(Defect,"not implemented")
+      raise newException(JsonPatchError,
+          &"Failed to apply operation ${o}: Path does not exist")
 
     document
   # of Remove:
@@ -118,7 +94,7 @@ func apply(document: JsonNode, o: Operation): JsonNode =
   else:
     document
 
-func applyPatch*(document: JsonNode, patch: JsonPatch): JsonNode =
+func patch*(document: JsonNode, patch: JsonPatch): JsonNode =
   if len(patch.operations) == 0:
     return document
-  result = patch.operations.foldl(a.apply(b), document)
+  result = patch.operations.foldl(a.patch(b), document)
