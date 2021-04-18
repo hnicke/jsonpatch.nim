@@ -11,9 +11,7 @@ type
     Move = "move"
     Copy = "copy"
     Test = "test"
-  
 
-  # TODO add proper types for each operation in order to make code more readable and less errorprone
   # maybe use objects variants once https://github.com/nim-lang/RFCs/issues/368 is implemented
   OperationTransport = object
     ## Only used for json marshalling
@@ -123,10 +121,13 @@ proc `%`*(patch: JsonPatch): JsonNode =
 proc abort(op: Operation, msg: string) =
   raise newException(JsonPatchError, &"Failed to apply operation {op[]}: {msg}")
 
-method patch(doc: JsonNode, op: Operation): JsonNode {.base.} =
+method apply(op: Operation, doc: JsonNode): JsonNode {.base.} =
   assert false, "missing impl: abstract base method"
 
-method patch(doc: JsonNode, op: AddOperation): JsonNode =
+func patch(doc: JsonNode, op: Operation): JsonNode =
+  op.apply(doc)
+
+method apply(op: AddOperation, doc: JsonNode): JsonNode =
   debugEcho "called add oepration!"
   result = doc
   if op.path.pointsToRoot():
@@ -145,7 +146,7 @@ method patch(doc: JsonNode, op: AddOperation): JsonNode =
   else:
     op.abort("Path does not exist")
 
-method patch(doc: JsonNode, op: RemoveOperation): JsonNode =
+method apply(op: RemoveOperation, doc: JsonNode): JsonNode =
   result = doc
   let parent = doc.resolve(op.path.parent.get)
   if parent.isSome:
@@ -161,12 +162,12 @@ method patch(doc: JsonNode, op: RemoveOperation): JsonNode =
   else:
     op.abort("path does not exist")
 
-method patch(doc: JsonNode, op: ReplaceOperation): JsonNode =
+method apply(op: ReplaceOperation, doc: JsonNode): JsonNode =
     result = doc
       .patch(RemoveOperation(path: op.path))
       .patch(AddOperation(path: op.path, value: op.value))
 
-method patch(doc: JsonNode, op: MoveOperation): JsonNode =
+method apply(op: MoveOperation, doc: JsonNode): JsonNode =
     let node = doc.resolve(op.fromPath)
     if node.isNone:
       op.abort("path does not exist")
@@ -174,15 +175,12 @@ method patch(doc: JsonNode, op: MoveOperation): JsonNode =
       .patch(RemoveOperation(path: op.fromPath))
       .patch(AddOperation(path: op.path, value: node.get))
 
-method patch(doc: JsonNode, op: TestOperation): JsonNode =
+method apply(op: TestOperation, doc: JsonNode): JsonNode =
     let node = doc.resolve(op.path)
     if node.get(nil) != op.value:
       op.abort("Test failed")
 
-
-
-# TODO maybe we can use func again, in combo with method possible?
-method patch*(doc: JsonNode, patch: JsonPatch): JsonNode =
+func patch*(doc: JsonNode, patch: JsonPatch): JsonNode =
   if len(patch.operations) == 0:
     return doc
   result = patch.operations.foldl(a.patch(b), doc)
