@@ -1,68 +1,62 @@
-import 
-    std/[json, strutils, sequtils]
-#[
-# Ways to think about jsongraph manipulation
-- would be nice to navigate upwards (know the parent..)
+import
+  std/[json, strutils, strformat, sequtils, deques, parseutils, options]
 
-# Opertions to support
-## Add
-- traverse
-- check existence
-- insert
-## Remove
-- traverse
-- check existence
-- remove
-## Move
-- Add + Remove
-## Copy
-- lookup node at path + Add
-
-
-# Forces
-- json nodes don't know parent
-  -> traversal only until before leaf
-  -> add, remove, copy etc only needs parent all the time anyways!!
-
-# usage:
-document.add(node, jpointer)
-document.delete(node, jpointer)
-
-# optionally create non-existent on the fly
-node, parent = document.traverse(jpointer, createNonExistent=false)
-# downsides: weird interface, know-it-all, unwiedly
-
-# transparent lightweight
-document.traverse(jpointer)
-iterator traverse(JsonNode, JsonPointer): JsonNode
-
-iterator traverse(JsonNode, JsonPointer): JsonNode
-
-initJsonPointer(JsonNode, string): JsonPointer
-
-]#
-
-type 
-  JPointer = object
-    document: JsonNode
-    rawSegments: seq[string]
-    # precompute sequence of JsonNode
-    segments: seq[JsonNode]
+type
+  JsonPointer* = object
+    segments: seq[string]
     pointer: int
+  JsonPointerResolveError* = object of CatchableError
 
-proc initJsonPointer*(document: JsonNode, jsonPointer: string): JPointer =
+proc toJsonPointer*(jsonPointer: string): JsonPointer =
   ## See https://tools.ietf.org/html/rfc6901
-  let segments = jsonPointer
+  var segments = jsonPointer
     .split("/")
     .mapIt(it.multiReplace(("~1", "/"), ("~0", "~")))
-  return JPointer(document: document, rawSegments: segments)
+  if segments.len > 0:
+    segments.delete(0)
+  return JsonPointer(segments: segments)
 
-# proc hasNext(p: JPointer): bool
-# proc nextExists(p: JPointer): bool
-# proc next(p: JPointer): JsonNode
+proc `$`*(p: JsonPointer): string =
+  p.segments.join("/")
 
-# proc targetNodeExists(p: JPointer): bool
-G
+proc parent*(jsonPointer: JsonPointer): Option[JsonPointer] =
+  case jsonPointer.segments.len
+  of 0: none(JsonPointer)
+  else: some JsonPointer(segments: jsonPointer.segments[0..jsonPointer.segments.len - 2])
 
-
+func resolveParent*(root: JsonNode, jsonPointer: JsonPointer): Option[JsonNode] =
+  ## Returns the parent of the node which is represented by the JSON Pointer.
+    # TODO handle case where pointer is empty: ""
+    # if segment == "":
+      # continue
+  var segments = jsonPointer.segments.toDeque()
+  var node = root
+  while segments.len > 1:
+    let segment = segments.popFirst()
+    case node.kind
+    of JObject:
+      try:
+        node = node[segment]
+      except KeyError:
+        # handle missing key
+        assert false, "not implemented"
+    of JArray:
+      if segment == "-":
+        if node.len > 0:
+          node = node[node.len-1]
+        else:
+          return none(JsonNode)
+      else:
+        try:
+          let idx = parseInt(segment)
+          if 0 <= idx and idx < node.len:
+            node = node[idx]
+          else:
+            return none(JsonNode)
+        except ValueError:
+          raise newException(JsonPointerResolveError,
+             &"Segment '{segment}' is not a valid array index")
+    else:
+      assert false, "not implemented"
+  return some(node)
 

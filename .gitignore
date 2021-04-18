@@ -1,3 +1,4 @@
 tests/test_parsing
 tests/test_jsonpatch
+tests/test_jsonpointer
 *.out
