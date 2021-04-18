@@ -29,10 +29,12 @@ type
 proc check(o: Operation) =
   proc abort(msg: string) =
     raise newException(InvalidJsonPatchError,
-        &"Operation {o} is invalid: {msg}")
+        &"Invalid operation {o}: {msg}")
   case o.op
   of Add:
-    if o.value.isNone: abort("Missing 'value'")
+    if o.value.isNone: abort("missing 'value'")
+  of Remove:
+    if o.path == "": abort("path cant point to root")
   else:
     discard
 
@@ -67,6 +69,13 @@ proc `%`*(patch: JsonPatch): JsonNode =
     result.add(jsonOperation)
 
 func patch(document: JsonNode, o: Operation): JsonNode =
+  o.check()
+
+  proc abort(msg: string) =
+    raise newException(JsonPatchError,
+        &"Failed to apply operation {o}: {msg}")
+
+  result = document
   let jsonPointer = o.path.toJsonPointer()
   case o.op
   of Add:
@@ -75,7 +84,7 @@ func patch(document: JsonNode, o: Operation): JsonNode =
       return value
     let parent = document.resolve(jsonPointer.parent.get)
     if parent.isSome:
-      let key = parent.get.parseChildKey(jsonPointer.leafSegment())
+      let key = parent.get.parseChildKey(jsonPointer.leafSegment)
       case key.kind
       of JArray:
         parent.get.elems.insert(value, key.idx)
@@ -85,14 +94,27 @@ func patch(document: JsonNode, o: Operation): JsonNode =
         # TODO implement
         raise newException(Defect, "not implemented")
     else:
-      raise newException(JsonPatchError,
-          &"Failed to apply operation ${o}: Path does not exist")
+      abort("Path does not exist")
+  of Remove:
+    let parent = document.resolve(jsonPointer.parent.get)
+    if parent.isSome:
+      let key = parent.get.parseChildKey(jsonPointer.leafSegment)
+      case key.kind
+      # TODO catch if removed element doesnt exist
+      of JArray:
+        parent.get.elems.delete(key.idx)
+      of JObject:
+        parent.get.delete(key.member)
+      else:
+        assert false, "not implemented"
+    else:
+      abort("Path does not exist")
 
-    document
-  # of Remove:
 
+    discard
   else:
-    document
+    # TODO implement
+    assert false, "not implemented"
 
 func patch*(document: JsonNode, patch: JsonPatch): JsonNode =
   if len(patch.operations) == 0:

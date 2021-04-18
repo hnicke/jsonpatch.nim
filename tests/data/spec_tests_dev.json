@@ -36,5 +36,17 @@
     "expected": {
       "foo": "bar"
     }
+  },
+  {
+    "comment": "A.4.  Removing an Array Element",
+    "doc": {
+  "foo": [ "bar", "qux", "baz" ]
+},
+    "patch": [
+  { "op": "remove", "path": "/foo/1" }
+],
+    "expected": {
+  "foo": [ "bar", "baz" ]
+}
   }
 ]
