@@ -19,8 +19,8 @@ proc fromFile(path: string): seq[TestCase] =
 
 # const testFiles = ["custom_tests.json", "spec_tests.json", "tests.json"]
 # const testFiles = ["custom_tests.json"]
-# const testFiles = ["spec_tests.json"]
-const testFiles = ["tests.json"]
+const testFiles = ["spec_tests.json"]
+# const testFiles = ["tests.json"]
 # const testFiles = ["spec_tests_dev.json"]
 for file in testFiles:
   let testCases = fromFile(file)
