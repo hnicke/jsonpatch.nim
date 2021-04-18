@@ -123,8 +123,13 @@ proc abort(op: Operation, msg: string) =
 method apply(op: Operation, doc: JsonNode): JsonNode {.base.} =
   assert false, "missing impl: abstract base method"
 
-func patch(doc: JsonNode, op: Operation): JsonNode =
+func patch*(doc: JsonNode, op: Operation): JsonNode =
   op.apply(doc)
+
+func patch*(doc: JsonNode, patch: JsonPatch): JsonNode =
+  if len(patch.operations) == 0:
+    return doc
+  result = patch.operations.foldl(a.patch(b), doc)
 
 method apply(op: AddOperation, doc: JsonNode): JsonNode =
   result = doc
@@ -146,6 +151,8 @@ method apply(op: AddOperation, doc: JsonNode): JsonNode =
 
 method apply(op: RemoveOperation, doc: JsonNode): JsonNode =
   result = doc
+  if op.path.pointsToRoot:
+    op.abort("Can not remove top level node")
   let parent = doc.resolve(op.path.parent.get)
   if parent.isSome:
     let key = parent.get.parseChildKey(op.path.leafSegment)
@@ -161,9 +168,12 @@ method apply(op: RemoveOperation, doc: JsonNode): JsonNode =
     op.abort("path does not exist")
 
 method apply(op: ReplaceOperation, doc: JsonNode): JsonNode =
-    result = doc
-      .patch(RemoveOperation(path: op.path))
-      .patch(AddOperation(path: op.path, value: op.value))
+    if op.path.pointsToRoot:
+      return op.value
+    else:
+      return doc
+        .patch(RemoveOperation(path: op.path))
+        .patch(AddOperation(path: op.path, value: op.value))
 
 method apply(op: MoveOperation, doc: JsonNode): JsonNode =
     let node = doc.resolve(op.fromPath)
@@ -178,8 +188,3 @@ method apply(op: TestOperation, doc: JsonNode): JsonNode =
     let node = doc.resolve(op.path)
     if node.get(nil) != op.value:
       op.abort("Test failed")
-
-func patch*(doc: JsonNode, patch: JsonPatch): JsonNode =
-  if len(patch.operations) == 0:
-    return doc
-  result = patch.operations.foldl(a.patch(b), doc)
