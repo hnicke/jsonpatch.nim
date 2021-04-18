@@ -40,27 +40,45 @@
   {
     "comment": "A.4.  Removing an Array Element",
     "doc": {
-  "foo": [ "bar", "qux", "baz" ]
-},
-    "patch": [
-  { "op": "remove", "path": "/foo/1" }
-],
+      "foo": ["bar", "qux", "baz"]
+    },
+    "patch": [{ "op": "remove", "path": "/foo/1" }],
     "expected": {
-  "foo": [ "bar", "baz" ]
-}
+      "foo": ["bar", "baz"]
+    }
   },
-   {
+  {
     "comment": "A.5.  Replacing a Value",
     "doc": {
-  "baz": "qux",
-  "foo": "bar"
-},
-    "patch": [
-  { "op": "replace", "path": "/baz", "value": "boo" }
-],
+      "baz": "qux",
+      "foo": "bar"
+    },
+    "patch": [{ "op": "replace", "path": "/baz", "value": "boo" }],
     "expected": {
-  "baz": "boo",
-  "foo": "bar"
-}
-  }, 
+      "baz": "boo",
+      "foo": "bar"
+    }
+  },
+  {
+    "comment": "A.6.  Moving a Value",
+    "doc": {
+      "foo": {
+        "bar": "baz",
+        "waldo": "fred"
+      },
+      "qux": {
+        "corge": "grault"
+      }
+    },
+    "patch": [{ "op": "move", "from": "/foo/waldo", "path": "/qux/thud" }],
+    "expected": {
+      "foo": {
+        "bar": "baz"
+      },
+      "qux": {
+        "corge": "grault",
+        "thud": "fred"
+      }
+    }
+  }
 ]

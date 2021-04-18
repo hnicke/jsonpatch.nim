@@ -35,6 +35,8 @@ proc check(o: Operation) =
     if o.value.isNone: abort("missing 'value'")
   of Remove:
     if o.path == "": abort("path cant point to root")
+  of Move:
+    if o.`from`.isNone: abort("missing 'from'")
   else:
     discard
 
@@ -113,6 +115,13 @@ func patch(document: JsonNode, o: Operation): JsonNode =
     result = document
       .patch(Operation(op: Remove, path: o.path))
       .patch(Operation(op: Add, path: o.path, value: o.value))
+  of Move:
+    let node = document.resolve(o.`from`.get)
+    if node.isNone:
+      abort("Path does not exist")
+    result = document
+      .patch(Operation(op: Remove, path: o.`from`.get))
+      .patch(Operation(op: Add, path: o.path, value: node))
   else:
     # TODO implement
     assert false, "not implemented"
