@@ -80,5 +80,30 @@
         "thud": "fred"
       }
     }
+  },
+  {
+    "comment": "A.7.  Moving an Array Element",
+    "doc": {
+      "foo": ["all", "grass", "cows", "eat"]
+    },
+    "patch": [{ "op": "move", "from": "/foo/1", "path": "/foo/3" }],
+    "expected": {
+      "foo": ["all", "cows", "eat", "grass"]
+    }
+  },
+  {
+    "comment": "A.8.  Testing a Value: Success",
+    "doc": {
+      "baz": "qux",
+      "foo": ["a", 2, "c"]
+    },
+    "patch": [
+      { "op": "test", "path": "/baz", "value": "qux" },
+      { "op": "test", "path": "/foo/1", "value": 2 }
+    ],
+    "expected": {
+      "baz": "qux",
+      "foo": ["a", 2, "c"]
+    }
   }
 ]

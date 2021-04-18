@@ -11,7 +11,8 @@ type
     Move = "move"
     Copy = "copy"
     Test = "test"
-
+  
+  # TODO add proper types for each operation in order to make code more readable and less errorprone
   # maybe use objects variants once https://github.com/nim-lang/RFCs/issues/368 is implemented
   Operation = object
     op: OperationKind
@@ -31,7 +32,7 @@ proc check(o: Operation) =
     raise newException(InvalidJsonPatchError,
         &"Invalid operation {o}: {msg}")
   case o.op
-  of Add, Replace:
+  of Add, Replace, Test:
     if o.value.isNone: abort("missing 'value'")
   of Remove:
     if o.path == "": abort("path cant point to root")
@@ -122,6 +123,12 @@ func patch(document: JsonNode, o: Operation): JsonNode =
     result = document
       .patch(Operation(op: Remove, path: o.`from`.get))
       .patch(Operation(op: Add, path: o.path, value: node))
+  of Test:
+    let node = document.resolve(o.path)
+    if node.get(nil) != o.value.get:
+      abort("Test failed")
+
+
   else:
     # TODO implement
     assert false, "not implemented"
