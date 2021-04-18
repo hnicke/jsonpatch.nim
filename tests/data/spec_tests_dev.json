@@ -105,5 +105,86 @@
       "baz": "qux",
       "foo": ["a", 2, "c"]
     }
+  },
+  {
+    "comment": "A.9.  Testing a Value: Error",
+    "doc": {
+      "baz": "qux"
+    },
+    "patch": [{ "op": "test", "path": "/baz", "value": "bar" }],
+    "error": "string not equivalent"
+  },
+  {
+    "comment": "A.10.  Adding a nested Member Object",
+    "doc": {
+      "foo": "bar"
+    },
+    "patch": [{ "op": "add", "path": "/child", "value": { "grandchild": {} } }],
+    "expected": {
+      "foo": "bar",
+      "child": {
+        "grandchild": {}
+      }
+    }
+  },
+  {
+    "comment": "A.11.  Ignoring Unrecognized Elements",
+    "doc": {
+      "foo": "bar"
+    },
+    "patch": [{ "op": "add", "path": "/baz", "value": "qux", "xyz": 123 }],
+    "expected": {
+      "foo": "bar",
+      "baz": "qux"
+    }
+  },
+
+  {
+    "comment": "A.12.  Adding to a Non-existent Target",
+    "doc": {
+      "foo": "bar"
+    },
+    "patch": [{ "op": "add", "path": "/baz/bat", "value": "qux" }],
+    "error": "add to a non-existent target"
+  },
+  {
+    "comment": "A.13 Invalid JSON Patch Document",
+    "doc": {
+      "foo": "bar"
+    },
+    "patch": [{ "op": "add", "path": "/baz", "value": "qux", "op": "remove" }],
+    "error": "operation has two 'op' members",
+    "disabled": true
+  },
+  {
+    "comment": "A.14. ~ Escape Ordering",
+    "doc": {
+      "/": 9,
+      "~1": 10
+    },
+    "patch": [{ "op": "test", "path": "/~01", "value": 10 }],
+    "expected": {
+      "/": 9,
+      "~1": 10
+    }
+  },
+  {
+    "comment": "A.15. Comparing Strings and Numbers",
+    "doc": {
+      "/": 9,
+      "~1": 10
+    },
+    "patch": [{ "op": "test", "path": "/~01", "value": "10" }],
+    "error": "number is not equal to string"
+  },
+    {
+    "comment": "A.16. Adding an Array Value",
+    "doc": {
+       "foo": ["bar"]
+    },
+    "patch": [{ "op": "add", "path": "/foo/-", "value": ["abc", "def"] }],
+    "expected": {
+      "foo": ["bar", ["abc", "def"]]
+    }
   }
 ]

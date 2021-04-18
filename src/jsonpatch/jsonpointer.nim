@@ -35,7 +35,7 @@ func parseChildKey*(node: JsonNode, pointerSegment: string): JsonPointerKey =
     result.member = pointerSegment
   of JArray:
     if pointerSegment == "-":
-      result.idx = node.len - 1
+      result.idx = node.len
     else:
       try:
         result.idx = parseInt(pointerSegment)
