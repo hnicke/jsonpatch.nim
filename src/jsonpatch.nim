@@ -84,7 +84,6 @@ func toModel(op: OperationTransport): Operation =
     if op.value.isNone: abort("missing 'value'")
     result = newReplaceOperation(path=path, op.value.get)
   of Move:
-    if op.value.isNone: abort("missing 'value'")
     if op.`from`.isNone: abort("missing 'from'")
     result = newMoveOperation(path=path, fromPath=op.`from`.get.toJsonPointer)
   of Test:
@@ -128,7 +127,6 @@ func patch(doc: JsonNode, op: Operation): JsonNode =
   op.apply(doc)
 
 method apply(op: AddOperation, doc: JsonNode): JsonNode =
-  debugEcho "called add oepration!"
   result = doc
   if op.path.pointsToRoot():
     return op.value
@@ -176,6 +174,7 @@ method apply(op: MoveOperation, doc: JsonNode): JsonNode =
       .patch(AddOperation(path: op.path, value: node.get))
 
 method apply(op: TestOperation, doc: JsonNode): JsonNode =
+    result = doc
     let node = doc.resolve(op.path)
     if node.get(nil) != op.value:
       op.abort("Test failed")
