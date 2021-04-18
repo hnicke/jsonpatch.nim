@@ -1,6 +1,6 @@
 import
   jsonpatch / jsonpointer,
-  std / [json, options, strformat, sequtils, strutils]
+  std / [json, options, strformat, sequtils]
 
 type
 
@@ -31,7 +31,7 @@ proc check(o: Operation) =
     raise newException(InvalidJsonPatchError,
         &"Invalid operation {o}: {msg}")
   case o.op
-  of Add:
+  of Add, Replace:
     if o.value.isNone: abort("missing 'value'")
   of Remove:
     if o.path == "": abort("path cant point to root")
@@ -109,9 +109,10 @@ func patch(document: JsonNode, o: Operation): JsonNode =
         assert false, "not implemented"
     else:
       abort("Path does not exist")
-
-
-    discard
+  of Replace:
+    result = document
+      .patch(Operation(op: Remove, path: o.path))
+      .patch(Operation(op: Add, path: o.path, value: o.value))
   else:
     # TODO implement
     assert false, "not implemented"

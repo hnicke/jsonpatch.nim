@@ -48,5 +48,19 @@
     "expected": {
   "foo": [ "bar", "baz" ]
 }
-  }
+  },
+   {
+    "comment": "A.5.  Replacing a Value",
+    "doc": {
+  "baz": "qux",
+  "foo": "bar"
+},
+    "patch": [
+  { "op": "replace", "path": "/baz", "value": "boo" }
+],
+    "expected": {
+  "baz": "boo",
+  "foo": "bar"
+}
+  }, 
 ]
