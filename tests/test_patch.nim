@@ -17,8 +17,8 @@ proc fromFile(path: string): seq[TestCase] =
     .parseJson()
     .to(seq[TestCase])
 
-# const testFiles = ["spec_tests.json", "tests.json"]
-const testFiles = ["spec_tests.json"]
+const testFiles = ["spec_tests.json", "tests.json"]
+# const testFiles = ["spec_tests.json"]
 # const testFiles = ["tests.json"]
 # const testFiles = ["spec_tests_dev.json"]
 for file in testFiles:
@@ -27,15 +27,15 @@ for file in testFiles:
     test(testCase.comment.get("[no description]")):
       if testCase.disabled.get(false):
         skip()
-      check testCase.expected.isSome == testCase.error.isNone
       try:
         let patch = testCase.patch.to(JsonPatch)
         let actualDoc = testCase.doc.patch(patch)
-        if testCase.error.isSome or testCase.expected.isNone:
+        if testCase.error.isSome:
           raise newException(Defect,
             &"Should have raised error: {testCase.error.get()}, but returned result {$actualDoc}")
-        let expected = testCase.expected.get()
-        check expected == actualDoc
+        if testCase.expected.isSome:
+          let expected = testCase.expected.get()
+          check expected == actualDoc
       except:
         if testCase.error.isNone:
           raise
