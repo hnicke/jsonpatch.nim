@@ -17,10 +17,10 @@ proc fromFile(path: string): seq[TestCase] =
     .parseJson()
     .to(seq[TestCase])
 
-const testFiles = ["spec_tests.json", "tests.json"]
-# const testFiles = ["spec_tests.json"]
-# const testFiles = ["tests.json"]
-# const testFiles = ["spec_tests_dev.json"]
+var testFiles = newSeq[string]()
+testFiles.add("spec_tests.json")
+testFiles.add("tests.json")
+# testFiles.add("custom_tests.json")
 for file in testFiles:
   let testCases = fromFile(file)
   for testCase in testCases:

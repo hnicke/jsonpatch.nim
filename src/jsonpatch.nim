@@ -187,7 +187,10 @@ type
   JsonPatch* = object
     operations: seq[Operation]
 
-
+func patch*(doc: JsonNode, patch: JsonPatch): JsonNode =
+  if len(patch.operations) == 0:
+    return doc
+  result = patch.operations.foldl(a.patch(b), doc)
 
 func toModel(op: OperationTransport): Operation =
   func abort(msg: string) =
@@ -239,8 +242,3 @@ proc `%`*(patch: JsonPatch): JsonNode =
       if value.kind != JNull:
         jsonOperation.add(key, value)
     result.add(jsonOperation)
-
-func patch*(doc: JsonNode, patch: JsonPatch): JsonNode =
-  if len(patch.operations) == 0:
-    return doc
-  result = patch.operations.foldl(a.patch(b), doc)
