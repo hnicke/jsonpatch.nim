@@ -47,10 +47,9 @@ test "resolve with non-integer array index":
   expect JsonPointerResolveError:
     discard root.resolve("/a/n/b").isNone
 
-test "resolve using '-' as array index":
-  let expected = %* {"b": "c"}
-  let root = %* {"a": [0, expected]}
-  check expected == root.resolve("/a/-").get
+test "resolve using '-' as array index fails":
+  let root = %* {"a": [0, 1]}
+  check root.resolve("/a/-").isNone
 
 
 test "resolve parent using '-' as array index, but array is empty":

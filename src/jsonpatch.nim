@@ -136,7 +136,8 @@ method apply(op: Operation, doc: JsonNode): JsonNode {.base.} =
   assert false, "missing impl: abstract base method"
 
 func patch*(doc: JsonNode, op: Operation): JsonNode =
-  op.apply(doc)
+  result = op.apply(doc)
+  assert result != nil
 
 func patch*(doc: JsonNode, patch: JsonPatch): JsonNode =
   if len(patch.operations) == 0:
