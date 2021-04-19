@@ -21,7 +21,10 @@ proc toJsonPointer*(jsonPointer: string): JsonPointer =
   return JsonPointer(segments: segments)
 
 proc `$`*(p: JsonPointer): string =
-  p.segments.join("/")
+  if p.segments.len > 0:
+    result = "/" & p.segments.join("/")
+  else:
+    result = ""
 
 proc parent*(jsonPointer: JsonPointer): Option[JsonPointer] =
   case jsonPointer.segments.len
@@ -72,5 +75,13 @@ func resolve*(root: JsonNode, jsonPointer: string): Option[JsonNode] =
   ## Returns the parent of the node which is represented by given string, interpreted as JSON Pointer.
   root.resolve(jsonPointer.toJsonPointer())
 
-func pointsToRoot*(p: JsonPointer): bool = p.segments.len == 0
+func isRoot*(p: JsonPointer): bool = p.segments.len == 0
 
+proc `%`*(p: JsonPointer): JsonNode = newJString($p)
+
+proc to*[T: JsonPointer](node: JsonNode, t: typedesc[T]): T =
+  case node.kind
+  of JString:
+    result = node.getStr().toJsonPointer()
+  else:
+    raise newException(JsonKindError, &"JsonPointer must be json string, but found '{node.kind}'")

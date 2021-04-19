@@ -87,8 +87,8 @@ func toModel(op: OperationTransport): Operation =
     if op.value.isNone: abort("missing 'value'")
     result = newAddOperation(path = path, value = op.value.get)
   of Remove:
-    if path.pointsToRoot: abort("path cant point to root")
-    result = newRemoveOperation(path = op.path.toJsonPointer)
+    if path.isRoot: abort("path cant point to root")
+    result = newRemoveOperation(path = path)
   of Replace:
     if op.value.isNone: abort("missing 'value'")
     result = newReplaceOperation(path = path, op.value.get)
@@ -116,9 +116,9 @@ proc to*[T: JsonPatch](node: JsonNode, t: typedesc[T]): T =
     else:
       raise newException(InvalidJsonPatchError,
           &"Json patch must be an array, but was '{node.kind}'")
-  except KeyError:
-    raise newException(InvalidJsonPatchError, getCurrentExceptionMsg())
-
+  except KeyError, ValueError:
+    raise newException(InvalidJsonPatchError, "Invalid json patch: " &
+        getCurrentExceptionMsg())
 
 proc `%`*(patch: JsonPatch): JsonNode =
   result = newJArray()
@@ -146,7 +146,7 @@ func patch*(doc: JsonNode, patch: JsonPatch): JsonNode =
 
 method apply(op: AddOperation, doc: JsonNode): JsonNode =
   result = doc
-  if op.path.pointsToRoot():
+  if op.path.isRoot:
     return op.value
   let parent = doc.resolve(op.path.parent.get)
   if parent.isSome:
@@ -164,7 +164,7 @@ method apply(op: AddOperation, doc: JsonNode): JsonNode =
 
 method apply(op: RemoveOperation, doc: JsonNode): JsonNode =
   result = doc
-  if op.path.pointsToRoot:
+  if op.path.isRoot:
     op.abort("Can not remove top level node")
   let parent = doc.resolve(op.path.parent.get)
   if parent.isSome:
@@ -181,7 +181,7 @@ method apply(op: RemoveOperation, doc: JsonNode): JsonNode =
     op.abort("node at path does not exist")
 
 method apply(op: ReplaceOperation, doc: JsonNode): JsonNode =
-  if op.path.pointsToRoot:
+  if op.path.isRoot:
     return op.value
   else:
     return doc
