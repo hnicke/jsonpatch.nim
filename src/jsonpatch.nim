@@ -27,7 +27,7 @@ type
 type Operation = ref object of RootObj
     path: JsonPointer
 
-method apply(op: Operation, doc: JsonNode): JsonNode {.base.} =
+method apply(op: Operation, doc: JsonNode): JsonNode {.base, locks: "unknown".} =
   assert false, "missing impl: abstract base method"
 
 func patch*(doc: JsonNode, op: Operation): JsonNode =
