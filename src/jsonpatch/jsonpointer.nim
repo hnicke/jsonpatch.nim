@@ -33,20 +33,23 @@ proc parent*(jsonPointer: JsonPointer): Option[JsonPointer] =
   of 0: none(JsonPointer)
   else: some JsonPointer(segments: jsonPointer.segments[0..^2])
 
-func parseChildKey*(node: JsonNode, pointerSegment: string): JsonPointerKey =
+func parseChildKey*(node: JsonNode, segment: string): JsonPointerKey =
   case node.kind
   of JObject:
-    result = JsonPointerKey(kind: JsonObject, member: pointerSegment)
+    result = JsonPointerKey(kind: JsonObject, member: segment)
   of JArray:
     result = JsonPointerKey(kind: JsonArray)
-    if pointerSegment == "-":
+    if segment == "-":
       result.idx = node.len
+    elif segment.startsWith("0") and segment.len > 1:
+      raise newException(JsonPointerResolveError,
+                        &"Invalid segment '{segment}': leading zeroes are not allowed")
     else:
       try:
-        result.idx = parseInt(pointerSegment)
+        result.idx = parseInt(segment)
       except ValueError:
         raise newException(JsonPointerResolveError,
-            &"Segment '{pointerSegment}' is not a valid array index")
+            &"Segment '{segment}' is not a valid array index")
   else: raise newException(Defect, &"Node is of kind {node.kind}, which is a not container node")
 
 func leafSegment*(p: JsonPointer): Option[string] =

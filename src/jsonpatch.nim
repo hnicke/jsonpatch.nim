@@ -2,10 +2,11 @@ import
   jsonpatch / jsonpointer,
   std / [json, options, strformat, sequtils]
 
+export jsonpointer.JsonPointerResolveError
+
 type
 
   JsonPatchError* = object of CatchableError
-  InvalidJsonPatchError* = object of CatchableError
 
   OperationKind {.pure.} = enum
     Add = "add"
@@ -194,7 +195,7 @@ func patch*(doc: JsonNode, patch: JsonPatch): JsonNode =
 
 func toModel(op: OperationTransport): Operation =
   func abort(msg: string) =
-    raise newException(InvalidJsonPatchError, &"Invalid operation {op}: {msg}")
+    raise newException(JsonPatchError, &"Invalid operation {op}: {msg}")
   let path = op.path.toJsonPointer
   case op.op
   of Add:
@@ -228,10 +229,10 @@ proc to*[T: JsonPatch](node: JsonNode, t: typedesc[T]): T =
         .map(toModel)
       result = JsonPatch(operations: operations)
     else:
-      raise newException(InvalidJsonPatchError,
+      raise newException(JsonPatchError,
           &"Json patch must be an array, but was '{node.kind}'")
   except KeyError, ValueError:
-    raise newException(InvalidJsonPatchError, "Invalid json patch: " &
+    raise newException(JsonPatchError, "Invalid json patch: " &
         getCurrentExceptionMsg())
 
 proc `%`*(patch: JsonPatch): JsonNode =

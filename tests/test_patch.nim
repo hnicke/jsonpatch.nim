@@ -36,6 +36,6 @@ for file in testFiles:
         if testCase.expected.isSome:
           let expected = testCase.expected.get()
           check expected == actualDoc
-      except JsonPatchError:
+      except JsonPatchError, JsonPointerResolveError:
         if testCase.error.isNone:
           raise
