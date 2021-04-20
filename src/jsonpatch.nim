@@ -87,11 +87,16 @@ method apply(op: RemoveOperation, doc: JsonNode): JsonNode =
   if parent.isSome:
     let key = parent.get.parseChildKey(op.path.leafSegment.get)
     case key.kind
-    # TODO catch if removed element doesnt exist
-    of JsonArray:
-      parent.get.elems.delete(key.idx)
     of JsonObject:
-      parent.get.delete(key.member)
+      try:
+        parent.get.delete(key.member)
+      except KeyError:
+        op.abort("Trying to remove nonexistent key")
+    of JsonArray:
+      if key.idx < parent.get.elems.len:
+        parent.get.elems.delete(key.idx)
+      else:
+        op.abort(&"Trying to remove nonexistent index ${key.idx}")
   else:
     op.abort("node at path does not exist")
 
