@@ -16,8 +16,8 @@ type
     Test = "test"
 
   # maybe use objects variants once https://github.com/nim-lang/RFCs/issues/368 is implemented
+  # Only used for json marshalling
   OperationTransport = object
-    ## Only used for json marshalling
     op: OperationKind
     path: string
     value: Option[JsonNode]
@@ -61,13 +61,10 @@ method apply(op: AddOperation, doc: JsonNode): JsonNode =
   if parent.isSome:
     let key = parent.get.parseChildKey(op.path.leafSegment.get)
     case key.kind
-    of JArray:
+    of JsonArray:
       parent.get.elems.insert(op.value, key.idx)
-    of JObject:
+    of JsonObject:
       parent.get.add(key.member, op.value)
-    else:
-      # TODO implement
-      raise newException(Defect, "not implemented")
   else:
     op.abort("Path does not exist")
 
@@ -91,12 +88,10 @@ method apply(op: RemoveOperation, doc: JsonNode): JsonNode =
     let key = parent.get.parseChildKey(op.path.leafSegment.get)
     case key.kind
     # TODO catch if removed element doesnt exist
-    of JArray:
+    of JsonArray:
       parent.get.elems.delete(key.idx)
-    of JObject:
+    of JsonObject:
       parent.get.delete(key.member)
-    else:
-      assert false, "not implemented"
   else:
     op.abort("node at path does not exist")
 

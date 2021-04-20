@@ -4,11 +4,13 @@ import
 type
   JsonPointer* = object
     segments: seq[string]
+  JsonContainerKind* {.pure.} = enum
+    JsonObject
+    JsonArray
   JsonPointerKey* = object
-    case kind*: JsonNodeKind
-    of JObject: member*: string
-    of JArray: idx*: int
-    else: discard
+    case kind*: JsonContainerKind
+    of JsonObject: member*: string
+    of JsonArray: idx*: int
   JsonPointerResolveError* = object of CatchableError
 
 proc toJsonPointer*(jsonPointer: string): JsonPointer =
@@ -32,11 +34,11 @@ proc parent*(jsonPointer: JsonPointer): Option[JsonPointer] =
   else: some JsonPointer(segments: jsonPointer.segments[0..^2])
 
 func parseChildKey*(node: JsonNode, pointerSegment: string): JsonPointerKey =
-  result = JsonPointerKey(kind: node.kind)
   case node.kind
   of JObject:
-    result.member = pointerSegment
+    result = JsonPointerKey(kind: JsonObject, member: pointerSegment)
   of JArray:
+    result = JsonPointerKey(kind: JsonArray)
     if pointerSegment == "-":
       result.idx = node.len
     else:
@@ -45,9 +47,9 @@ func parseChildKey*(node: JsonNode, pointerSegment: string): JsonPointerKey =
       except ValueError:
         raise newException(JsonPointerResolveError,
             &"Segment '{pointerSegment}' is not a valid array index")
-  else: discard
+  else: raise newException(Defect, &"Node is of kind {node.kind}, which is a not container node")
 
-func leafSegment*(p: JsonPointer): Option[string] = 
+func leafSegment*(p: JsonPointer): Option[string] =
   ## Returns the last segment of the pointer, if it exists
   if p.segments.len > 0:
     return some p.segments[^1]
@@ -58,19 +60,16 @@ func resolve*(root: JsonNode, jsonPointer: JsonPointer): Option[JsonNode] =
   for segment in jsonPointer.segments:
     let key = node.parseChildKey(segment)
     case key.kind
-    of JObject:
+    of JsonObject:
       try:
         node = node[key.member]
       except KeyError:
         return none(JsonNode)
-    of JArray:
+    of JsonArray:
       if 0 <= key.idx and key.idx < node.len:
         node = node[key.idx]
       else:
         return none(JsonNode)
-    else:
-      # TODO implement
-      assert false, "not implemented"
   return some(node)
 
 
