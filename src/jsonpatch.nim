@@ -59,7 +59,7 @@ method apply(op: AddOperation, doc: JsonNode): JsonNode =
     return op.value
   let parent = doc.resolve(op.path.parent.get)
   if parent.isSome:
-    let key = parent.get.parseChildKey(op.path.leafSegment)
+    let key = parent.get.parseChildKey(op.path.leafSegment.get)
     case key.kind
     of JArray:
       parent.get.elems.insert(op.value, key.idx)
@@ -88,7 +88,7 @@ method apply(op: RemoveOperation, doc: JsonNode): JsonNode =
     op.abort("Can not remove top level node")
   let parent = doc.resolve(op.path.parent.get)
   if parent.isSome:
-    let key = parent.get.parseChildKey(op.path.leafSegment)
+    let key = parent.get.parseChildKey(op.path.leafSegment.get)
     case key.kind
     # TODO catch if removed element doesnt exist
     of JArray:

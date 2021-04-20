@@ -47,7 +47,10 @@ func parseChildKey*(node: JsonNode, pointerSegment: string): JsonPointerKey =
             &"Segment '{pointerSegment}' is not a valid array index")
   else: discard
 
-func leafSegment*(p: JsonPointer): string = p.segments[^1]
+func leafSegment*(p: JsonPointer): Option[string] = 
+  ## Returns the last segment of the pointer, if it exists
+  if p.segments.len > 0:
+    return some p.segments[^1]
 
 func resolve*(root: JsonNode, jsonPointer: JsonPointer): Option[JsonNode] =
   ## Returns the parent of the node which is represented by given JSON Pointer.
