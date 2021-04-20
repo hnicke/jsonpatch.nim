@@ -26,13 +26,13 @@ for file in testFiles:
   for testCase in testCases:
     test(testCase.comment.get("[no description]")):
       if testCase.disabled.get(false):
-        skip()
+        continue
       try:
         let patch = testCase.patch.to(JsonPatch)
         let actualDoc = testCase.doc.patch(patch)
         if testCase.error.isSome:
           raise newException(Defect,
-            &"Should have raised error: {testCase.error.get()}, but returned result {$actualDoc}")
+            &"Should have raised error: '{testCase.error.get()}', but returned result {$actualDoc}")
         if testCase.expected.isSome:
           let expected = testCase.expected.get()
           check expected == actualDoc
