@@ -44,7 +44,7 @@ test "resolve with non-existing array index":
 
 test "resolve with non-integer array index":
   let root = %* {"a": [{"b": "c"}]}
-  expect JsonPointerResolveError:
+  expect JsonPointerError:
     discard root.resolve("/a/n/b").isNone
 
 test "resolve using '-' as array index fails":
@@ -56,6 +56,9 @@ test "resolve parent using '-' as array index, but array is empty":
    let root = %* {"a": []}
    check root.resolve("/a/-/b").isNone
 
+test "jsonpointer must start with slash":
+  expect JsonPointerError:
+    let expected = "a".toJsonPointer 
 
 test "jsonpointer unmarshalling":
   let expected = "/a".toJsonPointer 

@@ -2,7 +2,7 @@ import
   jsonpatch / jsonpointer,
   std / [json, options, strformat, sequtils]
 
-export jsonpointer.JsonPointerResolveError
+export jsonpointer.JsonPointerError
 
 type
 

@@ -11,10 +11,12 @@ type
     case kind*: JsonContainerKind
     of JsonObject: member*: string
     of JsonArray: idx*: int
-  JsonPointerResolveError* = object of CatchableError
+  JsonPointerError* = object of CatchableError
 
 proc toJsonPointer*(jsonPointer: string): JsonPointer =
   ## See https://tools.ietf.org/html/rfc6901
+  if not jsonPointer.startsWith("/") and jsonPointer.len > 0:
+    raise newException(JsonPointerError, &"json pointer must start with slash, but was '{jsonPointer}'")
   var segments = jsonPointer
     .split("/")
     .mapIt(it.multiReplace(("~1", "/"), ("~0", "~")))
@@ -42,13 +44,13 @@ func parseChildKey*(node: JsonNode, segment: string): JsonPointerKey =
     if segment == "-":
       result.idx = node.len
     elif segment.startsWith("0") and segment.len > 1:
-      raise newException(JsonPointerResolveError,
+      raise newException(JsonPointerError,
                         &"Invalid segment '{segment}': leading zeroes are not allowed")
     else:
       try:
         result.idx = parseInt(segment)
       except ValueError:
-        raise newException(JsonPointerResolveError,
+        raise newException(JsonPointerError,
             &"Segment '{segment}' is not a valid array index")
   else: raise newException(Defect, &"Node is of kind {node.kind}, which is a not container node")
 
