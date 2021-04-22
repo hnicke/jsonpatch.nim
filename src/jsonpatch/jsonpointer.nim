@@ -48,7 +48,11 @@ func parseChildKey*(node: JsonNode, segment: string): JsonPointerKey =
                         &"Invalid segment '{segment}': leading zeroes are not allowed")
     else:
       try:
-        result.idx = parseInt(segment)
+        let idx = parseInt(segment)
+        if idx >= 0:
+          result.idx = idx
+        else:
+          raise newException(JsonPointerError, &"Array index must not be negative")
       except ValueError:
         raise newException(JsonPointerError,
             &"Segment '{segment}' is not a valid array index")
