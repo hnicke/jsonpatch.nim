@@ -216,7 +216,7 @@ proc to*[T: JsonPatch](node: JsonNode, t: typedesc[T]): T =
         getCurrentExceptionMsg())
 
 proc `%`*(op: Operation): JsonNode =
-  result = %* {"op": op.kind, "path": op.path }
+  result = %* {"op": op.kind, "path": op.path}
   case op.kind
   of Add:
     result["value"] = AddOperation(op).value

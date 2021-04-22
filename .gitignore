@@ -1,4 +1,4 @@
-tests/test_parsing
-tests/test_patch
-tests/test_jsonpointer
+tests/tparsing
+tests/tpatch
+tests/tjsonpointer
 *.out
