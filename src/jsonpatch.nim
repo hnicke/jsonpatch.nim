@@ -235,9 +235,4 @@ proc `%`*(op: Operation): JsonNode =
 
 proc `%`*(patch: JsonPatch): JsonNode =
   result = newJArray()
-  for operation in patch.operations:
-    let jsonOperation = newJObject()
-    for key, value in (%operation).pairs():
-      if value.kind != JNull:
-        jsonOperation.add(key, value)
-    result.add(jsonOperation)
+  result.elems = patch.operations.mapIt(%*it)
