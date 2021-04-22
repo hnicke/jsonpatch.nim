@@ -1,16 +1,58 @@
 import 
-    std / [unittest, json], 
-    jsonpatch
+  std / [unittest, json],
+  jsonpatch
 
 test "patch must be an array of something":
   let j = %*{"not": "array"}
   expect JsonPatchError:
     discard j.to(JsonPatch)
 
+test "valid 'add' operation":
+  let j = %*{"op": "add", "path": "/", "value": "foo"}
+  let op = AddOperation(j.to(Operation))
+  check op.path == "/".toJsonPointer
+  check op.value == %* "foo"
+
+test "valid 'remove' operation":
+  let j = %*{"op": "remove", "path": "/foo"}
+  let op = RemoveOperation(j.to(Operation))
+  check op.path == "/foo".toJsonPointer
+
+test "valid 'move' operation":
+  let j = %*{"op": "move", "path": "/", "from": "/foo"}
+  let op = MoveOperation(j.to(Operation))
+  check op.path == "/".toJsonPointer
+  check op.fromPath == "/foo".toJsonPointer
+
+test "valid 'copy' operation":
+  let j = %*{"op": "copy", "path": "/", "from": "/foo"}
+  let op = CopyOperation(j.to(Operation))
+  check op.path == "/".toJsonPointer
+  check op.fromPath == "/foo".toJsonPointer
+
+test "valid 'replace' operation":
+  let j = %*{"op": "copy", "path": "/", "from": "/foo"}
+  let op = CopyOperation(j.to(Operation))
+  check op.path == "/".toJsonPointer
+  check op.fromPath == "/foo".toJsonPointer
+
+test "valid 'test' operation":
+  let j = %*{"op": "test", "path": "/", "value": "foo"}
+  let op = TestOperation(j.to(Operation))
+  check op.path == "/".toJsonPointer
+  check op.value == %* "foo"
+
+
 test "operation must have required 'op' field":
-  let j = %*[{"path": "/"}]
+  let j = %*[{"path": "/", "value": "foo"}]
   expect JsonPatchError:
     discard j.to(JsonPatch)
+
+test "invalid 'op' field":
+  let j = %*[{"op": "invalid", "path": "/", "value": "add"}]
+  expect JsonPatchError:
+    discard j.to(JsonPatch)
+
 
 test "operation must have required 'path' field":
   let j = %*[{"op": "add"}]

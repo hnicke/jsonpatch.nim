@@ -58,7 +58,7 @@ test "resolve parent using '-' as array index, but array is empty":
 
 test "jsonpointer must start with slash":
   expect JsonPointerError:
-    let expected = "a".toJsonPointer 
+    discard "a".toJsonPointer 
 
 test "jsonpointer unmarshalling":
   let expected = "/a".toJsonPointer 

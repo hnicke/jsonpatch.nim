@@ -1,14 +1,14 @@
 import
   jsonpatch / jsonpointer,
-  std / [json, options, strformat, sequtils]
+  std / [json, options, strformat, sequtils, strutils]
 
-export jsonpointer.JsonPointerError
+export jsonpointer.JsonPointerError, jsonpointer.toJsonPointer
 
 type
 
   JsonPatchError* = object of CatchableError
 
-  OperationKind {.pure.} = enum
+  OperationKind* {.pure.} = enum
     Add = "add"
     Remove = "remove"
     Replace = "replace"
@@ -25,8 +25,8 @@ type
     `from`: Option[string]
 
 #------------- BASE OPERATION ------------------------#
-type Operation = ref object of RootObj
-    path: JsonPointer
+type Operation* = ref object of RootObj
+    path*: JsonPointer
 
 method apply(op: Operation, doc: JsonNode): JsonNode {.base, locks: "unknown".} =
   assert false, "missing impl: abstract base method"
@@ -43,8 +43,8 @@ method toTransport(op: Operation): OperationTransport {.base.} =
   assert false, "base method"
 
 #------------- ADD OPERATION ------------------------#
-type AddOperation = ref object of Operation
-  value: JsonNode
+type AddOperation* = ref object of Operation
+  value*: JsonNode
 
 proc newAddOperation(path: JsonPointer, value: JsonNode): AddOperation =
   new result
@@ -71,9 +71,11 @@ method apply(op: AddOperation, doc: JsonNode): JsonNode =
 
 
 #------------- REMOVE OPERATION ------------------------#
-type RemoveOperation = ref object of Operation
+type RemoveOperation* = ref object of Operation
 
 proc newRemoveOperation(path: JsonPointer): RemoveOperation =
+  if path.isRoot: 
+    raise newException(JsonPatchError, "path cant point to root")
   new result
   result.path = path
 
@@ -103,8 +105,8 @@ method apply(op: RemoveOperation, doc: JsonNode): JsonNode =
 
 
 #------------- REPLACE OPERATION ------------------------#
-type ReplaceOperation = ref object of Operation
-  value: JsonNode
+type ReplaceOperation* = ref object of Operation
+  value*: JsonNode
 
 proc newReplaceOperation(path: JsonPointer, value: JsonNode): ReplaceOperation =
   new result
@@ -124,8 +126,8 @@ method apply(op: ReplaceOperation, doc: JsonNode): JsonNode =
 
 
 #------------- MOVE OPERATION ------------------------#
-type MoveOperation = ref object of Operation
-  fromPath: JsonPointer
+type MoveOperation* = ref object of Operation
+  fromPath*: JsonPointer
 
 proc newMoveOperation(path: JsonPointer, fromPath: JsonPointer): MoveOperation =
   new result
@@ -145,8 +147,8 @@ method apply(op: MoveOperation, doc: JsonNode): JsonNode =
 
 
 #------------- TEST OPERATION ------------------------#
-type TestOperation = ref object of Operation
-  value: JsonNode
+type TestOperation* = ref object of Operation
+  value*: JsonNode
 
 proc newTestOperation(path: JsonPointer, value: JsonNode): TestOperation =
   new result
@@ -164,9 +166,8 @@ method apply(op: TestOperation, doc: JsonNode): JsonNode =
 
 
 #------------- COPY OPERATION ------------------------#
-type CopyOperation = ref object of Operation
-  value: JsonNode
-  fromPath: JsonPointer
+type CopyOperation* = ref object of Operation
+  fromPath*: JsonPointer
 
 proc newCopyOperation(path: JsonPointer, fromPath: JsonPointer): CopyOperation =
   new result
@@ -193,40 +194,41 @@ func patch*(doc: JsonNode, patch: JsonPatch): JsonNode =
     return doc
   result = patch.operations.foldl(a.patch(b), doc)
 
-func toModel(op: OperationTransport): Operation =
-  func abort(msg: string) =
-    raise newException(JsonPatchError, &"Invalid operation {op}: {msg}")
-  let path = op.path.toJsonPointer
-  case op.op
-  of Add:
-    if op.value.isNone: abort("missing 'value'")
-    result = newAddOperation(path = path, value = op.value.get)
-  of Remove:
-    if path.isRoot: abort("path cant point to root")
-    result = newRemoveOperation(path = path)
-  of Replace:
-    if op.value.isNone: abort("missing 'value'")
-    result = newReplaceOperation(path = path, op.value.get)
-  of Move:
-    if op.`from`.isNone: abort("missing 'from'")
-    result = newMoveOperation(path = path,
-        fromPath = op.`from`.get.toJsonPointer)
-  of Test:
-    if op.value.isNone: abort("missing 'value'")
-    result = newTestOperation(path = path, value = op.value.get)
-  of Copy:
-    if op.`from`.isNone: abort("missing 'from'")
-    result = newCopyOperation(path = path,
-        fromPath = op.`from`.get.toJsonPointer)
 
+proc to*[T: Operation](node: JsonNode, t: typedesc[T]): T =
+  case node.kind
+  of JObject:
+    # path, value, from
+    let op = parseEnum[OperationKind](node["op"].getStr())
+    let path = node["path"].to(JsonPointer)
+    case op
+    of Add:
+      let value = node["value"]
+      return newAddOperation(path, value)
+    of Remove:
+      return newRemoveOperation(path)
+    of Move:
+      let fromPath = node["from"].to(JsonPointer)
+      return newMoveOperation(path, fromPath)
+    of Copy:
+      let fromPath = node["from"].to(JsonPointer)
+      return newCopyOperation(path, fromPath)
+    of Replace:
+      let value = node["value"]
+      return newReplaceOperation(path, value)
+    of Test:
+      let value = node["value"]
+      return newTestOperation(path, value)
+  else:
+    raise newException(JsonPatchError, &"Operation must be array, but was {node.kind}")
+    
 
 proc to*[T: JsonPatch](node: JsonNode, t: typedesc[T]): T =
   try:
     case node.kind
     of JArray:
       let operations = node
-        .to(seq[OperationTransport])
-        .map(toModel)
+        .mapIt(it.to(Operation))
       result = JsonPatch(operations: operations)
     else:
       raise newException(JsonPatchError,
