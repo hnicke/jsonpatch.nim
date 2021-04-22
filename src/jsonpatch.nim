@@ -15,16 +15,10 @@ type
     Copy = "copy"
     Test = "test"
 
-  # maybe use objects variants once https://github.com/nim-lang/RFCs/issues/368 is implemented
-  # Only used for json marshalling
-  OperationTransport = object
-    op: OperationKind
-    path: string
-    value: Option[JsonNode]
-    `from`: Option[string]
 
 #------------- BASE OPERATION ------------------------#
 type Operation* = ref object of RootObj
+  kind*: OperationKind
   path*: JsonPointer
 
 method apply(op: Operation, doc: JsonNode): JsonNode {.base, locks: "unknown".} =
@@ -38,20 +32,15 @@ func patch*(doc: JsonNode, op: Operation): JsonNode =
 proc abort(op: Operation, msg: string) =
   raise newException(JsonPatchError, &"Failed to apply operation {op[]}: {msg}")
 
-method toTransport(op: Operation): OperationTransport {.base.} =
-  assert false, "base method"
-
 #------------- ADD OPERATION ------------------------#
 type AddOperation* = ref object of Operation
   value*: JsonNode
 
 proc newAddOperation(path: JsonPointer, value: JsonNode): AddOperation =
   new result
+  result.kind = Add
   result.path = path
   result.value = value
-
-method toTransport(op: AddOperation): OperationTransport =
-  OperationTransport(op: Add, path: $op.path, value: some op.value)
 
 method apply(op: AddOperation, doc: JsonNode): JsonNode =
   result = doc
@@ -76,10 +65,8 @@ proc newRemoveOperation(path: JsonPointer): RemoveOperation =
   if path.isRoot:
     raise newException(JsonPatchError, "path cant point to root")
   new result
+  result.kind = Remove
   result.path = path
-
-method toTransport(op: RemoveOperation): OperationTransport =
-  OperationTransport(op: Remove, path: $op.path)
 
 method apply(op: RemoveOperation, doc: JsonNode): JsonNode =
   result = doc
@@ -109,11 +96,9 @@ type ReplaceOperation* = ref object of Operation
 
 proc newReplaceOperation(path: JsonPointer, value: JsonNode): ReplaceOperation =
   new result
+  result.kind = Replace
   result.path = path
   result.value = value
-
-method toTransport(op: ReplaceOperation): OperationTransport =
-  OperationTransport(op: Replace, path: $op.path, value: some op.value)
 
 method apply(op: ReplaceOperation, doc: JsonNode): JsonNode =
   if op.path.isRoot:
@@ -130,11 +115,9 @@ type MoveOperation* = ref object of Operation
 
 proc newMoveOperation(path: JsonPointer, fromPath: JsonPointer): MoveOperation =
   new result
+  result.kind = Move
   result.path = path
   result.fromPath = fromPath
-
-method toTransport(op: MoveOperation): OperationTransport =
-  OperationTransport(op: Move, path: $op.path, `from`: some $op.fromPath)
 
 method apply(op: MoveOperation, doc: JsonNode): JsonNode =
   let node = doc.resolve(op.fromPath)
@@ -151,11 +134,9 @@ type TestOperation* = ref object of Operation
 
 proc newTestOperation(path: JsonPointer, value: JsonNode): TestOperation =
   new result
+  result.kind = Test
   result.path = path
   result.value = value
-
-method toTransport(op: TestOperation): OperationTransport =
-  OperationTransport(op: Test, path: $op.path, value: some op.value)
 
 method apply(op: TestOperation, doc: JsonNode): JsonNode =
   result = doc
@@ -170,11 +151,9 @@ type CopyOperation* = ref object of Operation
 
 proc newCopyOperation(path: JsonPointer, fromPath: JsonPointer): CopyOperation =
   new result
+  result.kind = Copy
   result.path = path
   result.fromPath = fromPath
-
-method toTransport(op: CopyOperation): OperationTransport =
-  OperationTransport(op: Copy, path: $op.path, `from`: some $op.fromPath)
 
 method apply(op: CopyOperation, doc: JsonNode): JsonNode =
   let node = doc.resolve(op.fromPath)
@@ -236,11 +215,26 @@ proc to*[T: JsonPatch](node: JsonNode, t: typedesc[T]): T =
     raise newException(JsonPatchError, "Invalid json patch: " &
         getCurrentExceptionMsg())
 
+proc `%`*(op: Operation): JsonNode =
+  result = %* {"op": op.kind, "path": op.path }
+  case op.kind
+  of Add:
+    result["value"] = AddOperation(op).value
+  of Replace:
+    result["value"] = ReplaceOperation(op).value
+  of Move:
+    result["from"] = newJString($MoveOperation(op).fromPath)
+  of Test:
+    result["value"] = TestOperation(op).value
+  of Copy:
+    result["from"] = newJString($CopyOperation(op).fromPath)
+  else: discard
+
 proc `%`*(patch: JsonPatch): JsonNode =
   result = newJArray()
   for operation in patch.operations:
     let jsonOperation = newJObject()
-    for key, value in (%(operation.toTransport)).pairs():
+    for key, value in (%operation).pairs():
       if value.kind != JNull:
         jsonOperation.add(key, value)
     result.add(jsonOperation)
