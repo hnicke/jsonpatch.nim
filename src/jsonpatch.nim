@@ -51,7 +51,10 @@ method apply(op: AddOperation, doc: JsonNode): JsonNode =
     let key = parent.get.parseChildKey(op.path.leafSegment.get)
     case key.kind
     of JsonArray:
-      parent.get.elems.insert(op.value, key.idx)
+      if key.idx <= parent.get.elems.len:
+        parent.get.elems.insert(op.value, key.idx)
+      else:
+        op.abort(&"Invalid array index '{key.idx}'")
     of JsonObject:
       parent.get.add(key.member, op.value)
   else:
