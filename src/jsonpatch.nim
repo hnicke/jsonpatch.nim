@@ -5,7 +5,6 @@ import
 export jsonpointer.JsonPointerError, jsonpointer.toJsonPointer
 
 type
-
   JsonPatchError* = object of CatchableError
 
   OperationKind* {.pure.} = enum
@@ -26,7 +25,7 @@ type
 
 #------------- BASE OPERATION ------------------------#
 type Operation* = ref object of RootObj
-    path*: JsonPointer
+  path*: JsonPointer
 
 method apply(op: Operation, doc: JsonNode): JsonNode {.base, locks: "unknown".} =
   assert false, "missing impl: abstract base method"
@@ -74,7 +73,7 @@ method apply(op: AddOperation, doc: JsonNode): JsonNode =
 type RemoveOperation* = ref object of Operation
 
 proc newRemoveOperation(path: JsonPointer): RemoveOperation =
-  if path.isRoot: 
+  if path.isRoot:
     raise newException(JsonPatchError, "path cant point to root")
   new result
   result.path = path
@@ -221,7 +220,7 @@ proc to*[T: Operation](node: JsonNode, t: typedesc[T]): T =
       return newTestOperation(path, value)
   else:
     raise newException(JsonPatchError, &"Operation must be array, but was {node.kind}")
-    
+
 
 proc to*[T: JsonPatch](node: JsonNode, t: typedesc[T]): T =
   try:

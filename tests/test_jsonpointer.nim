@@ -53,19 +53,19 @@ test "resolve using '-' as array index fails":
 
 
 test "resolve parent using '-' as array index, but array is empty":
-   let root = %* {"a": []}
-   check root.resolve("/a/-/b").isNone
+  let root = %* {"a": []}
+  check root.resolve("/a/-/b").isNone
 
 test "jsonpointer must start with slash":
   expect JsonPointerError:
-    discard "a".toJsonPointer 
+    discard "a".toJsonPointer
 
 test "jsonpointer unmarshalling":
-  let expected = "/a".toJsonPointer 
+  let expected = "/a".toJsonPointer
   let actual = "/a".`%`.to(JsonPointer)
   check expected == actual
 
 test "jsonpointer marshalling":
-  let expected = %*"/a".toJsonPointer 
+  let expected = %*"/a".toJsonPointer
   let actual = newJString("/a")
   check expected == actual

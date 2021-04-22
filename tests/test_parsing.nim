@@ -1,4 +1,4 @@
-import 
+import
   std / [unittest, json],
   jsonpatch
 
@@ -65,14 +65,14 @@ test "add operation must have required 'value' field":
     discard j.to(JsonPatch)
 
 test "successful unmarshal and marshal":
-  let jsonPatch =  %*
+  let jsonPatch = %*
     [
-       { "op": "add", "path": "/a/b/c", "value": [ "foo", "bar" ] },
-       { "op": "test", "path": "/a/b/c", "value": "foo" },
-       { "op": "remove", "path": "/a/b/c" },
-       { "op": "replace", "path": "/a/b/c", "value": 42 },
-       { "op": "move", "from": "/a/b/c", "path": "/a/b/d" },
-       { "op": "copy", "from": "/a/b/d", "path": "/a/b/e" }
+       {"op": "add", "path": "/a/b/c", "value": ["foo", "bar"]},
+       {"op": "test", "path": "/a/b/c", "value": "foo"},
+       {"op": "remove", "path": "/a/b/c"},
+       {"op": "replace", "path": "/a/b/c", "value": 42},
+       {"op": "move", "from": "/a/b/c", "path": "/a/b/d"},
+       {"op": "copy", "from": "/a/b/d", "path": "/a/b/e"}
     ]
   let patch = jsonPatch.to(JsonPatch)
   let marshalledPatch = %*patch
