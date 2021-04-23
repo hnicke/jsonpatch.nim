@@ -1,4 +1,1 @@
-tests/tparsing
-tests/tpatch
-tests/tjsonpointer
-*.out
+/out/
