@@ -1,0 +1,16 @@
+JsonPatchError	jsonpatch.html#JsonPatchError	jsonpatch: JsonPatchError	
+OperationKind	jsonpatch.html#OperationKind	jsonpatch: OperationKind	
+Operation	jsonpatch.html#Operation	jsonpatch: Operation	
+patch	jsonpatch.html#patch,JsonNode,Operation	jsonpatch: patch(doc: JsonNode; op: Operation): JsonNode	
+AddOperation	jsonpatch.html#AddOperation	jsonpatch: AddOperation	
+RemoveOperation	jsonpatch.html#RemoveOperation	jsonpatch: RemoveOperation	
+ReplaceOperation	jsonpatch.html#ReplaceOperation	jsonpatch: ReplaceOperation	
+MoveOperation	jsonpatch.html#MoveOperation	jsonpatch: MoveOperation	
+TestOperation	jsonpatch.html#TestOperation	jsonpatch: TestOperation	
+CopyOperation	jsonpatch.html#CopyOperation	jsonpatch: CopyOperation	
+JsonPatch	jsonpatch.html#JsonPatch	jsonpatch: JsonPatch	
+patch	jsonpatch.html#patch,JsonNode,JsonPatch	jsonpatch: patch(doc: JsonNode; patch: JsonPatch): JsonNode	
+to	jsonpatch.html#to,JsonNode,typedesc[T]	jsonpatch: to[T: Operation](node: JsonNode; t: typedesc[T]): T	
+to	jsonpatch.html#to,JsonNode,typedesc[T]_2	jsonpatch: to[T: JsonPatch](node: JsonNode; t: typedesc[T]): T	
+`%`	jsonpatch.html#%,Operation	jsonpatch: `%`(op: Operation): JsonNode	
+`%`	jsonpatch.html#%,JsonPatch	jsonpatch: `%`(patch: JsonPatch): JsonNode	

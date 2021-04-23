@@ -1,0 +1,14 @@
+JsonPointer	jsonpatch/jsonpointer.html#JsonPointer	jsonpointer: JsonPointer	
+JsonContainerKind	jsonpatch/jsonpointer.html#JsonContainerKind	jsonpointer: JsonContainerKind	
+JsonPointerKey	jsonpatch/jsonpointer.html#JsonPointerKey	jsonpointer: JsonPointerKey	
+JsonPointerError	jsonpatch/jsonpointer.html#JsonPointerError	jsonpointer: JsonPointerError	
+toJsonPointer	jsonpatch/jsonpointer.html#toJsonPointer,string	jsonpointer: toJsonPointer(jsonPointer: string): JsonPointer	
+`$`	jsonpatch/jsonpointer.html#$,JsonPointer	jsonpointer: `$`(p: JsonPointer): string	
+parent	jsonpatch/jsonpointer.html#parent,JsonPointer	jsonpointer: parent(jsonPointer: JsonPointer): Option[JsonPointer]	
+parseChildKey	jsonpatch/jsonpointer.html#parseChildKey,JsonNode,string	jsonpointer: parseChildKey(node: JsonNode; segment: string): JsonPointerKey	
+leafSegment	jsonpatch/jsonpointer.html#leafSegment,JsonPointer	jsonpointer: leafSegment(p: JsonPointer): Option[string]	
+resolve	jsonpatch/jsonpointer.html#resolve,JsonNode,JsonPointer	jsonpointer: resolve(root: JsonNode; jsonPointer: JsonPointer): Option[JsonNode]	
+resolve	jsonpatch/jsonpointer.html#resolve,JsonNode,string	jsonpointer: resolve(root: JsonNode; jsonPointer: string): Option[JsonNode]	
+isRoot	jsonpatch/jsonpointer.html#isRoot,JsonPointer	jsonpointer: isRoot(p: JsonPointer): bool	
+`%`	jsonpatch/jsonpointer.html#%,JsonPointer	jsonpointer: `%`(p: JsonPointer): JsonNode	
+to	jsonpatch/jsonpointer.html#to,JsonNode,typedesc[T]	jsonpointer: to[T: JsonPointer](node: JsonNode; t: typedesc[T]): T	
