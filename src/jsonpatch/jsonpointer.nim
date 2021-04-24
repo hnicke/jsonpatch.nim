@@ -94,6 +94,8 @@ func `/`*(p1: JsonPointer, p2: JsonPointer): JsonPointer =
 
 func `/`*(p1: JsonPointer, p2: string): JsonPointer =
   ## Concatenate pointers while converting second argument to JsonPointer
+  let p2 = if p2.startsWith("/"): p2 else: "/" & p2
+
   result.segments = p1.segments & p2.toJsonPointer().segments
 
 
