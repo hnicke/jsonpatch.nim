@@ -60,6 +60,12 @@ test "jsonpointer must start with slash":
   expect JsonPointerError:
     discard "a".toJsonPointer
 
+test "concatenate jsonpointers":
+  let root = "/foo/bar".toJsonPointer
+  let child = "/baz".toJsonPointer
+  let expected = "/foo/bar/baz".toJsonPointer
+  check expected == root / child
+
 test "jsonpointer unmarshalling":
   let expected = "/a".toJsonPointer
   let actual = "/a".`%`.to(JsonPointer)
@@ -69,3 +75,4 @@ test "jsonpointer marshalling":
   let expected = %*"/a".toJsonPointer
   let actual = newJString("/a")
   check expected == actual
+

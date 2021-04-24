@@ -88,6 +88,11 @@ func resolve*(root: JsonNode, jsonPointer: string): Option[JsonNode] =
 
 func isRoot*(p: JsonPointer): bool = p.segments.len == 0
 
+func `/`*(p1: JsonPointer, p2: JsonPointer): JsonPointer =
+  ## Concatenate pointers
+  result.segments = p1.segments & p2.segments
+
+
 proc `%`*(p: JsonPointer): JsonNode = newJString($p)
 
 proc to*[T: JsonPointer](node: JsonNode, t: typedesc[T]): T =
