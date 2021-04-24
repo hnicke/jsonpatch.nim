@@ -66,6 +66,12 @@ test "concatenate jsonpointers":
   let expected = "/foo/bar/baz".toJsonPointer
   check expected == root / child
 
+test "concatenate jsonpointers (with conversion from string)":
+  let root = "/foo/bar".toJsonPointer
+  let child = "/baz"
+  let expected = "/foo/bar/baz".toJsonPointer
+  check expected == root / child
+
 test "jsonpointer unmarshalling":
   let expected = "/a".toJsonPointer
   let actual = "/a".`%`.to(JsonPointer)

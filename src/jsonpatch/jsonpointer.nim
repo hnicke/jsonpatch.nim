@@ -92,6 +92,10 @@ func `/`*(p1: JsonPointer, p2: JsonPointer): JsonPointer =
   ## Concatenate pointers
   result.segments = p1.segments & p2.segments
 
+func `/`*(p1: JsonPointer, p2: string): JsonPointer =
+  ## Concatenate pointers while converting second argument to JsonPointer
+  result.segments = p1.segments & p2.toJsonPointer().segments
+
 
 proc `%`*(p: JsonPointer): JsonNode = newJString($p)
 
