@@ -11,5 +11,6 @@ resolve	jsonpatch/jsonpointer.html#resolve,JsonNode,JsonPointer	jsonpointer: res
 resolve	jsonpatch/jsonpointer.html#resolve,JsonNode,string	jsonpointer: resolve(root: JsonNode; jsonPointer: string): Option[JsonNode]	
 isRoot	jsonpatch/jsonpointer.html#isRoot,JsonPointer	jsonpointer: isRoot(p: JsonPointer): bool	
 `/`	jsonpatch/jsonpointer.html#/,JsonPointer,JsonPointer	jsonpointer: `/`(p1: JsonPointer; p2: JsonPointer): JsonPointer	
+`/`	jsonpatch/jsonpointer.html#/,JsonPointer,string	jsonpointer: `/`(p1: JsonPointer; p2: string): JsonPointer	
 `%`	jsonpatch/jsonpointer.html#%,JsonPointer	jsonpointer: `%`(p: JsonPointer): JsonNode	
 to	jsonpatch/jsonpointer.html#to,JsonNode,typedesc[T]	jsonpointer: to[T: JsonPointer](node: JsonNode; t: typedesc[T]): T	

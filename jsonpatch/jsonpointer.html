@@ -161,6 +161,8 @@ function main() {
   <ul class="simple nested-toc-section">/
       <li><a class="reference" href="#%2F%2CJsonPointer%2CJsonPointer"
     title="`/`(p1: JsonPointer; p2: JsonPointer): JsonPointer">/,<wbr>JsonPointer,<wbr>JsonPointer</a></li>
+  <li><a class="reference" href="#%2F%2CJsonPointer%2Cstring"
+    title="`/`(p1: JsonPointer; p2: string): JsonPointer">/,<wbr>JsonPointer,<wbr>string</a></li>
 
   </ul>
   <ul class="simple nested-toc-section">leafSegment
@@ -317,6 +319,14 @@ Returns the parent of the node which is represented by given string, interpreted
 Concatenate pointers
 
 </dd>
+<a id="/,JsonPointer,string"></a>
+<dt><pre><span class="Keyword">func</span> <a href="#%2F%2CJsonPointer%2Cstring"><span class="Identifier">`/`</span></a><span class="Other">(</span><span class="Identifier">p1</span><span class="Other">:</span> <a href="jsonpointer.html#JsonPointer"><span class="Identifier">JsonPointer</span></a><span class="Other">;</span> <span class="Identifier">p2</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <a href="jsonpointer.html#JsonPointer"><span class="Identifier">JsonPointer</span></a> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma">
+    <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">JsonPointerError</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<dd>
+
+Concatenate pointers while converting second argument to JsonPointer
+
+</dd>
 
 </dl></div>
 
@@ -327,7 +337,7 @@ Concatenate pointers
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2021-04-24 08:37:21 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2021-04-24 08:52:27 UTC</small>
       </div>
     </div>
   </div>
