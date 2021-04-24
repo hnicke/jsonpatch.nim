@@ -186,50 +186,27 @@ func patch*(doc: JsonNode, operations: seq[Operation]): JsonNode =
 func patch*(doc: JsonNode, patch: JsonPatch): JsonNode =
   return doc.patch(patch.operations)
 
-func changeRoot(op: Operation, root: JsonPointer): Operation =
-  ## Prepend root to all JsonPointers, effectively enabling divide-and-conquer algorithms
-  result = op
-  result.path = root / op.path
-  case op.kind
-  of Move:
-    MoveOperation(result).fromPath = root / MoveOperation(op).fromPath
-  of Test:
-    CopyOperation(result).fromPath = root / CopyOperation(op).fromPath
-  else: discard
+func recursiveDiff(src: JsonNode, dst: JsonNode, root: JsonPointer): seq[Operation]
 
-func changeRoot(op: Operation, key: string): Operation =
-  result = op.changeRoot(("/" & key).toJsonPointer)
-
-func recursiveDiff(src: seq[JsonNode], dst: seq[JsonNode]): seq[Operation] =
-  if src == dst:
-    return
-  var lookup = newTable[JsonNode, tuple[src: seq[Natural], dst: seq[Natural]]]()
-  for idx, item in src:
-    lookup
-      .mgetOrPut(item, (newSeq[Natural](), newSeq[Natural]()))
-      .src.add(idx)
-  for idx, item in dst:
-    lookup
-      .mgetOrPut(item, (newSeq[Natural](), newSeq[Natural]()))
-      .dst.add(idx)
-
-  for item, (srcLookup, dstLookup) in lookup:
-    if srcLookup.len == 0:
-      # TODO problem... if absolute jsonpointer is computed in submethod, applying the operation in subscope is impossible
-      result.add(newAddOperation(("/" & $dstLookup[0]).toJsonPointer, item))
-      # efficient array replacement could be tricky
-      # common use cases:
-      # - delete index from list
-      # - insert into list
-      # - append to list
-
-      result = result & recursiveDiff(
-          JsonNode(kind: JArray, elems: src).patch(result).elems,
-          dst)
+func recursiveDiff(src: seq[JsonNode], dst: seq[JsonNode], root: JsonPointer): seq[Operation] =
+  var src = src
+  var dst = dst
+  var idx = 0
+  while idx < max(src.len, dst.len):
+    if idx > high(src):
+      src.add(dst[idx])
+      result.add(newAddOperation(root / $idx, dst[idx]))
+    if idx > high(dst):
+      src.delete(idx)
+      result.add(newRemoveOperation(root / $idx))
+      dec(idx)
+    else:
+      result = result & recursiveDiff(src[idx], dst[idx], root / $idx)
+      src[idx] = dst[idx]
+    inc(idx)
 
 
-func recursiveDiff(src: JsonNode, dst: JsonNode): seq[Operation] =
-  let root = "".toJsonPointer
+func recursiveDiff(src: JsonNode, dst: JsonNode, root: JsonPointer): seq[Operation] =
   case src.kind
   of JObject:
     case dst.kind
@@ -237,20 +214,20 @@ func recursiveDiff(src: JsonNode, dst: JsonNode): seq[Operation] =
       # TODO maybe use pairs instead of keys + lookup
       let keys = src.keys.toSeq().toHashSet() + dst.keys.toSeq().toHashSet()
       for key in keys:
-        let path = ("/" & key).toJsonPointer
+        let path = root / key
         if key in src and key notin dst:
           result.add(newRemoveOperation(path))
         elif key in dst and key notin src:
           result.add(newAddOperation(path, dst[key]))
         else:
-          result = result & recursiveDiff(src[key], dst[key])
-            .mapIt(it.changeRoot(key))
+          result = result & recursiveDiff(src[key], dst[key], root / key)
     else:
       result.add(newReplaceOperation(root, dst))
   of JArray:
     case dst.kind
     of JArray:
-      result = result & recursiveDiff(src.elems, dst.elems)
+      # TODO using root is incorrect
+      result = result & recursiveDiff(src.elems, dst.elems, root)
     else:
       result.add(newReplaceOperation(root, dst))
   else:
@@ -258,7 +235,7 @@ func recursiveDiff(src: JsonNode, dst: JsonNode): seq[Operation] =
       result.add(newReplaceOperation(root, dst))
 
 func diff*(src: JsonNode, dst: JsonNode): JsonPatch =
-  return initJsonPatch(recursiveDiff(src, dst))
+  return initJsonPatch(recursiveDiff(src, dst, "".toJsonPointer))
 
 
 #------------- MARSHALLING ------------------------#

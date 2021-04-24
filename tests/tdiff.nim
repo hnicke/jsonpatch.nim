@@ -9,9 +9,9 @@ template diffCheck(d1, d2: JsonNode): untyped =
 
 template diffCheck(d1, d2: untyped): untyped =
   let j1 = %* d1
-  let j2 =  %* d2
+  let j2 = %* d2
   j1.diffCheck j2
-    
+
 
 suite "diff":
   # TODO
@@ -23,39 +23,54 @@ suite "diff":
     for doc in @[
         %* {},
         %* {"foo": "bar"},
-        ]:
-        check diff(doc, doc) == initJsonPatch()
+      ]:
+      check diff(doc, doc) == initJsonPatch()
 
   test "member add":
     {}.diffCheck {"foo": "bar"}
 
   test "member remove":
-    (%* {"foo": "bar"}).diffCheck (%* {})
+    ( %* {"foo": "bar"}).diffCheck ( %* {})
 
   test "replace string with string":
-   (%* {"foo": "bar"}).diffCheck (%* {"foo": "baz"})
+    ( %* {"foo": "bar"}).diffCheck ( %* {"foo": "baz"})
 
   test "replace bool with string":
-   (%* {"foo": true}).diffCheck (%* {"foo": "baz"})
+    ( %* {"foo": true}).diffCheck ( %* {"foo": "baz"})
 
   test "replace int with string":
-   (%* {"foo": 1}).diffCheck (%* {"foo": "baz"})
+    ( %* {"foo": 1}).diffCheck ( %* {"foo": "baz"})
 
   test "replace string with object":
-    (%* {"foo": "bar"}).diffCheck (%* {"foo": {"bar": "bar"}})
+    ( %* {"foo": "bar"}).diffCheck ( %* {"foo": {"bar": "bar"}})
 
   test "replace object with string":
-    (%* {"foo": {"bar": "baz"}}).diffCheck (%* {"foo": "bar"})
+    ( %* {"foo": {"bar": "baz"}}).diffCheck ( %* {"foo": "bar"})
 
   test "replace array with object":
-    (%* {"foo": ["bar"]}).diffCheck (%* {"foo": {"bar": "baz"}})
+    ( %* {"foo": ["bar"]}).diffCheck ( %* {"foo": {"bar": "baz"}})
 
   test "replace object with array":
-    (%* {"foo": {"bar": "baz"}}).diffCheck (%* {"foo": ["bar"]})
+    ( %* {"foo": {"bar": "baz"}}).diffCheck ( %* {"foo": ["bar"]})
 
-  test "append string to array":
-    (%* {"foo": ["bar"]}).diffCheck (%* {"foo": ["bar", "baz"]})
+  test "append item to array":
+    ( %* {"foo": ["bar"]}).diffCheck ( %* {"foo": ["bar", "baz"]})
 
-#   test "multiple occourences of same item in src and target array":
-#     (%* {"foo": ["bar", "bar"]}).diffCheck (%* {"foo": ["bar", "bar", "bar"]})
+  test "append two items to array":
+    (%* {"foo": ["bar"]}).diffCheck (%* {"foo": ["bar", "baz", "foobar"]})
+
+  test "remove item from array":
+    (%* {"foo": ["bar", "baz"]}).diffCheck (%* {"foo": ["bar"]})
+
+  test "remove two items from array":
+    (%* {"foo": ["bar", "baz", "foobar"]}).diffCheck (%* {"foo": ["bar"]})
+
+  test "multiple occourences of same item in src and target array":
+    (%* {"foo": ["bar", "bar"]}).diffCheck (%* {"foo": ["bar", "bar", "bar"]})
+
+  test "replace item in array":
+    (%* {"foo": ["bar", "baz"]}).diffCheck (%* {"foo": ["bar", "foobar"]})
+    
+  test "add member to object, nested in array":
+      (%* {"foo": [{"bar": "baz"}]}).diffCheck (%* {"foo": [{"bar": "baz", "foobar": "foobaz"}]})
 
