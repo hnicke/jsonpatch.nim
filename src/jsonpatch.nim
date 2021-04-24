@@ -1,8 +1,10 @@
 import
   jsonpatch / jsonpointer,
-  std / [json, options, strformat, sequtils, strutils]
+  std / [json, options, strformat, sequtils, strutils, sets, tables]
 
-export jsonpointer.JsonPointerError, jsonpointer.toJsonPointer
+export
+  jsonpointer.JsonPointerError,
+  jsonpointer.toJsonPointer
 
 type
   JsonPatchError* = object of CatchableError
@@ -28,7 +30,6 @@ func patch*(doc: JsonNode, op: Operation): JsonNode =
   result = op.apply(doc)
   assert result != nil
 
-
 proc abort(op: Operation, msg: string) =
   raise newException(JsonPatchError, &"Failed to apply operation {op[]}: {msg}")
 
@@ -36,7 +37,7 @@ proc abort(op: Operation, msg: string) =
 type AddOperation* = ref object of Operation
   value*: JsonNode
 
-proc newAddOperation(path: JsonPointer, value: JsonNode): AddOperation =
+proc newAddOperation*(path: JsonPointer, value: JsonNode): AddOperation =
   new result
   result.kind = Add
   result.path = path
@@ -64,7 +65,7 @@ method apply(op: AddOperation, doc: JsonNode): JsonNode =
 #------------- REMOVE OPERATION ------------------------#
 type RemoveOperation* = ref object of Operation
 
-proc newRemoveOperation(path: JsonPointer): RemoveOperation =
+proc newRemoveOperation*(path: JsonPointer): RemoveOperation =
   if path.isRoot:
     raise newException(JsonPatchError, "path cant point to root")
   new result
@@ -97,7 +98,7 @@ method apply(op: RemoveOperation, doc: JsonNode): JsonNode =
 type ReplaceOperation* = ref object of Operation
   value*: JsonNode
 
-proc newReplaceOperation(path: JsonPointer, value: JsonNode): ReplaceOperation =
+proc newReplaceOperation*(path: JsonPointer, value: JsonNode): ReplaceOperation =
   new result
   result.kind = Replace
   result.path = path
@@ -116,7 +117,7 @@ method apply(op: ReplaceOperation, doc: JsonNode): JsonNode =
 type MoveOperation* = ref object of Operation
   fromPath*: JsonPointer
 
-proc newMoveOperation(path: JsonPointer, fromPath: JsonPointer): MoveOperation =
+proc newMoveOperation*(path: JsonPointer, fromPath: JsonPointer): MoveOperation =
   new result
   result.kind = Move
   result.path = path
@@ -135,7 +136,7 @@ method apply(op: MoveOperation, doc: JsonNode): JsonNode =
 type TestOperation* = ref object of Operation
   value*: JsonNode
 
-proc newTestOperation(path: JsonPointer, value: JsonNode): TestOperation =
+proc newTestOperation*(path: JsonPointer, value: JsonNode): TestOperation =
   new result
   result.kind = Test
   result.path = path
@@ -152,7 +153,7 @@ method apply(op: TestOperation, doc: JsonNode): JsonNode =
 type CopyOperation* = ref object of Operation
   fromPath*: JsonPointer
 
-proc newCopyOperation(path: JsonPointer, fromPath: JsonPointer): CopyOperation =
+proc newCopyOperation*(path: JsonPointer, fromPath: JsonPointer): CopyOperation =
   new result
   result.kind = Copy
   result.path = path
@@ -166,16 +167,85 @@ method apply(op: CopyOperation, doc: JsonNode): JsonNode =
 
 
 #------------- JSON PATCH ------------------------#
-type
-  JsonPatch* = object
-    operations: seq[Operation]
+type JsonPatch* = object
+  operations: seq[Operation]
+
+proc initJsonPatch*(operations: seq[Operation]): JsonPatch =
+  JsonPatch(operations: operations)
+
+proc initJsonPatch*(operations: varargs[Operation]): JsonPatch =
+  JsonPatch(operations: @operations)
+
+func len*(p: JsonPatch): Natural = return p.operations.len
+
+func patch*(doc: JsonNode, operations: seq[Operation]): JsonNode =
+  if operations.len == 0:
+    return doc
+  result = operations.foldl(a.patch(b), doc)
 
 func patch*(doc: JsonNode, patch: JsonPatch): JsonNode =
-  if len(patch.operations) == 0:
-    return doc
-  result = patch.operations.foldl(a.patch(b), doc)
+  return doc.patch(patch.operations)
+
+func recursiveDiff(src: seq[JsonNode], dst: seq[JsonNode], root: JsonPointer): seq[Operation] =
+  if src == dst:
+    return
+  var lookup = newTable[JsonNode, tuple[src: seq[Natural], dst: seq[Natural]]]()
+  for idx, item in src:
+    lookup
+      .mgetOrPut(item, (newSeq[Natural](), newSeq[Natural]()))
+      .src.add(idx)
+  for idx, item in dst:
+    lookup
+      .mgetOrPut(item, (newSeq[Natural](), newSeq[Natural]()))
+      .dst.add(idx)
+
+  for item, (srcLookup, dstLookup) in lookup:
+    if srcLookup.len == 0:
+        # TODO problem... if absolute jsonpointer is computed in submethod, applying the operation in subscope is impossible
+        result.add(newAddOperation(root / $dstLookup[0], item))
+
+        result = result & recursiveDiff(
+            JsonNode(kind: JArray, elems: src).patch(result).elems,
+            dst, root)
+        
+    
+func recursiveDiff(src: JsonNode, dst: JsonNode, root: JsonPointer): seq[Operation] =
+  case src.kind
+  of JObject:
+    case dst.kind
+    of JObject:
+      # TODO maybe use pairs instead of keys + lookup
+      let keys = src.keys.toSeq().toHashSet() + dst.keys.toSeq().toHashSet()
+      for key in keys:
+        let path = root / key
+        if key in src and key notin dst:
+          result.add(newRemoveOperation(path))
+        elif key in dst and key notin src:
+          result.add(newAddOperation(path, dst[key]))
+        else:
+          result = result & recursiveDiff(src[key], dst[key], path)
+    else:
+      result.add(newReplaceOperation(root, dst))
+  of JArray:
+    case dst.kind
+    of JArray:
+      # efficient array replacement could be tricky
+      # common use cases:
+      # - delete index from list
+      # - insert into list
+      # - append to list
+      result = result & recursiveDiff(src.elems, dst.elems, root)
+    else:
+      result.add(newReplaceOperation(root, dst))
+  else:
+    if src != dst:
+      result.add(newReplaceOperation(root, dst))
+
+func diff*(src: JsonNode, dst: JsonNode): JsonPatch =
+  return initJsonPatch(recursiveDiff(src, dst, "".toJsonPointer))
 
 
+#------------- MARSHALLING ------------------------#
 proc to*[T: Operation](node: JsonNode, t: typedesc[T]): T =
   case node.kind
   of JObject:
