@@ -16,7 +16,8 @@ type
 proc toJsonPointer*(jsonPointer: string): JsonPointer =
   ## See https://tools.ietf.org/html/rfc6901
   if not jsonPointer.startsWith("/") and jsonPointer.len > 0:
-    raise newException(JsonPointerError, &"json pointer must start with slash, but was '{jsonPointer}'")
+    raise newException(JsonPointerError,
+        &"json pointer must start with slash, but was '{jsonPointer}'")
   var segments = jsonPointer
     .split("/")
     .mapIt(it.multiReplace(("~1", "/"), ("~0", "~")))
@@ -52,7 +53,8 @@ func parseChildKey*(node: JsonNode, segment: string): JsonPointerKey =
         if idx >= 0:
           result.idx = idx
         else:
-          raise newException(JsonPointerError, &"Array index must not be negative")
+          raise newException(JsonPointerError,
+              &"Array index must not be negative")
       except ValueError:
         raise newException(JsonPointerError,
             &"Segment '{segment}' is not a valid array index")

@@ -23,7 +23,8 @@ type Operation* = ref object of RootObj
   kind*: OperationKind
   path*: JsonPointer
 
-method apply(op: Operation, doc: JsonNode): JsonNode {.base, locks: "unknown".} =
+method apply(op: Operation, doc: JsonNode): JsonNode {.base,
+    locks: "unknown".} =
   assert false, "missing impl: abstract base method"
 
 func patch*(doc: JsonNode, op: Operation): JsonNode =
@@ -98,7 +99,8 @@ method apply(op: RemoveOperation, doc: JsonNode): JsonNode =
 type ReplaceOperation* = ref object of Operation
   value*: JsonNode
 
-proc newReplaceOperation*(path: JsonPointer, value: JsonNode): ReplaceOperation =
+proc newReplaceOperation*(path: JsonPointer,
+    value: JsonNode): ReplaceOperation =
   new result
   result.kind = Replace
   result.path = path
@@ -117,7 +119,8 @@ method apply(op: ReplaceOperation, doc: JsonNode): JsonNode =
 type MoveOperation* = ref object of Operation
   fromPath*: JsonPointer
 
-proc newMoveOperation*(path: JsonPointer, fromPath: JsonPointer): MoveOperation =
+proc newMoveOperation*(path: JsonPointer,
+    fromPath: JsonPointer): MoveOperation =
   new result
   result.kind = Move
   result.path = path
@@ -153,7 +156,8 @@ method apply(op: TestOperation, doc: JsonNode): JsonNode =
 type CopyOperation* = ref object of Operation
   fromPath*: JsonPointer
 
-proc newCopyOperation*(path: JsonPointer, fromPath: JsonPointer): CopyOperation =
+proc newCopyOperation*(path: JsonPointer,
+    fromPath: JsonPointer): CopyOperation =
   new result
   result.kind = Copy
   result.path = path
@@ -188,7 +192,8 @@ func patch*(doc: JsonNode, patch: JsonPatch): JsonNode =
 
 func recursiveDiff(src: JsonNode, dst: JsonNode, root: JsonPointer): seq[Operation]
 
-func recursiveDiff(src: seq[JsonNode], dst: seq[JsonNode], root: JsonPointer): seq[Operation] =
+func recursiveDiff(src: seq[JsonNode], dst: seq[JsonNode],
+    root: JsonPointer): seq[Operation] =
   var src = src
   var dst = dst
   var idx = 0

@@ -83,4 +83,5 @@ suite "diff":
     ( %* ["foo", "bar"]).diffCheck( %* ["foo", "baz", "foobar", "bar"], 2)
 
   test "insert three items in middle of array":
-    ( %* ["foo", "bar", "baz"]).diffCheck( %* ["foo", "foobar", "bazbar", "foobaz", "bar", "baz"], 3)
+    ( %* ["foo", "bar", "baz"]).diffCheck(
+      %* ["foo", "foobar", "bazbar", "foobaz", "bar", "baz"], 3)
