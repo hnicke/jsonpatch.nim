@@ -22,7 +22,10 @@ jobs:
       - name: check formatting
         run: |
           nimble fmt
-          [ -z "$(git status -s)" ]  && echo "Found unformatted files" >&2 && exit 1
+          if [ -z "$(git status -s)" ]; then
+            echo "Found unformatted files" >&2 
+            exit 1
+          fi
 
       - name: Run tests
         run: nimble test -y
