@@ -17,7 +17,7 @@ template diffCheck(d1, d2: untyped, maxOpCount: int = high(int)): untyped =
 suite "diff":
   # TODO
   # - assert the JsonPatch is never bigger than one replace operation containing d2
-  # - support array operations
+  #   - this should aswell be done on each array-level, as array-optimization is tough
 
   test "no change":
     # TODO do we support scalar documents?
@@ -77,15 +77,10 @@ suite "diff":
         "foobar": "foobaz"}]})
 
   test "insert item in middle of array":
-    # patch: [{"op":"replace","path":"/1","value":"baz"},{"op":"add","path":"/2","value":"bar"}]
-    # current patch looks like this:
-    # - replace bar with baz
-    # - add bar to end of array
-    # wanted:
-    # - add baz to array at index 1
-    # possible solutions to achieve this:
-    # - either optimize directly
-    # - optimize afterwards (need more context data, e.g. 
-
-
     ( %* ["foo", "bar"]).diffCheck( %* ["foo", "baz", "bar"], 1)
+
+  test "insert two items in middle of array":
+    ( %* ["foo", "bar"]).diffCheck( %* ["foo", "baz", "foobar", "bar"], 2)
+
+  test "insert three items in middle of array":
+    ( %* ["foo", "bar", "baz"]).diffCheck( %* ["foo", "foobar", "bazbar", "foobaz", "bar", "baz"], 3)

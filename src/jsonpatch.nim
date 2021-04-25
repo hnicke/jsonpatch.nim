@@ -193,20 +193,41 @@ func recursiveDiff(src: seq[JsonNode], dst: seq[JsonNode], root: JsonPointer): s
   var dst = dst
   var idx = 0
   while idx < max(src.len, dst.len):
-    if idx > high(src):
-      # adding to end of array
-      src.add(dst[idx])
-      result.add(newAddOperation(root / $idx, dst[idx]))
-    if idx > high(dst):
-      # removing fromto end of array
-      src.delete(idx)
-      result.add(newRemoveOperation(root / $idx))
-      dec(idx)
-    else:
-      # fallback: replace
+    block handleItem:
+      # handle appending to array
+      if idx > high(src):
+        src.add(dst[idx])
+        result.add(newAddOperation(root / $idx, dst[idx]))
+        inc idx
+        break handleItem
+
+      # handle removal at end of array
+      if idx > high(dst):
+        src.delete(idx)
+        result.add(newRemoveOperation(root / $idx))
+        break handleItem
+
+      # skip elements with no change
+      if dst[idx] == src[idx]:
+        # nothing to do
+        inc idx
+        break handleItem
+
+      # handle inserts
+      # TODO is it worth going through the whole array? How probable are inserts of many items?
+      # this optimization assumes that most array items are unique
+      for lookaheadIdx in idx..high(dst):
+        if dst[lookaheadIdx] == src[idx]:
+          src.insert(dst[idx..<lookaheadIdx], idx)
+          for insertIdx in idx..<lookaheadIdx:
+            result.add(newAddOperation(root / $insertIdx, dst[insertIdx]))
+          inc(idx, (lookaheadIdx - idx))
+          break handleItem
+
+      # fallback
       result = result & recursiveDiff(src[idx], dst[idx], root / $idx)
       src[idx] = dst[idx]
-    inc(idx)
+      inc idx
 
 
 func recursiveDiff(src: JsonNode, dst: JsonNode, root: JsonPointer): seq[Operation] =
