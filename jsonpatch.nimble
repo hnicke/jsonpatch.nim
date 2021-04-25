@@ -23,5 +23,5 @@ task updateTestData, "Fetch the latest test data":
 
 task fmt, "format the codebase":
   exec r"git ls-files . | grep '\.nim$' | xargs nimpretty"
-    echo "Formatted source code"
+  echo "Formatted source code"
 
