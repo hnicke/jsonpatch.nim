@@ -19,10 +19,10 @@ jobs:
           # due to a bug with iterators, need version >= 1.5.1
           nim-version: devel
 
-      - name: Run nimpretty
-        uses: juancarlospaco/nimpretty-action@main
+      - uses: juancarlospaco/nimpretty-action@main
         with:
           indent: 2
+          folders: "src,tests"
           maxLineLen: 80
 
       - name: Commit nimpretty fixes
