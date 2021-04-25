@@ -19,12 +19,10 @@ jobs:
           # due to a bug with iterators, need version >= 1.5.1
           nim-version: devel
 
-      - uses: juancarlospaco/nimpretty-action@main
-
-      - name: Commit nimpretty fixes
-        uses: EndBug/add-and-commit@v5  # https://github.com/EndBug/add-and-commit
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: check formatting
+        run:
+          - nimble fmt
+          - [ "$(git status -s)" ]  && echo "Found unformatted files" >&2 && exit 1
 
       - name: Run tests
         run: nimble test -y
