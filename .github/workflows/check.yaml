@@ -20,10 +20,6 @@ jobs:
           nim-version: devel
 
       - uses: juancarlospaco/nimpretty-action@main
-        with:
-          indent: 2
-          folders: "src,tests"
-          maxLineLen: 80
 
       - name: Commit nimpretty fixes
         uses: EndBug/add-and-commit@v5  # https://github.com/EndBug/add-and-commit
