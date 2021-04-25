@@ -194,13 +194,16 @@ func recursiveDiff(src: seq[JsonNode], dst: seq[JsonNode], root: JsonPointer): s
   var idx = 0
   while idx < max(src.len, dst.len):
     if idx > high(src):
+      # adding to end of array
       src.add(dst[idx])
       result.add(newAddOperation(root / $idx, dst[idx]))
     if idx > high(dst):
+      # removing fromto end of array
       src.delete(idx)
       result.add(newRemoveOperation(root / $idx))
       dec(idx)
     else:
+      # fallback: replace
       result = result & recursiveDiff(src[idx], dst[idx], root / $idx)
       src[idx] = dst[idx]
     inc(idx)
