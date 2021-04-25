@@ -3,13 +3,24 @@ OperationKind	jsonpatch.html#OperationKind	jsonpatch: OperationKind
 Operation	jsonpatch.html#Operation	jsonpatch: Operation	
 patch	jsonpatch.html#patch,JsonNode,Operation	jsonpatch: patch(doc: JsonNode; op: Operation): JsonNode	
 AddOperation	jsonpatch.html#AddOperation	jsonpatch: AddOperation	
+newAddOperation	jsonpatch.html#newAddOperation,JsonPointer,JsonNode	jsonpatch: newAddOperation(path: JsonPointer; value: JsonNode): AddOperation	
 RemoveOperation	jsonpatch.html#RemoveOperation	jsonpatch: RemoveOperation	
+newRemoveOperation	jsonpatch.html#newRemoveOperation,JsonPointer	jsonpatch: newRemoveOperation(path: JsonPointer): RemoveOperation	
 ReplaceOperation	jsonpatch.html#ReplaceOperation	jsonpatch: ReplaceOperation	
+newReplaceOperation	jsonpatch.html#newReplaceOperation,JsonPointer,JsonNode	jsonpatch: newReplaceOperation(path: JsonPointer; value: JsonNode): ReplaceOperation	
 MoveOperation	jsonpatch.html#MoveOperation	jsonpatch: MoveOperation	
+newMoveOperation	jsonpatch.html#newMoveOperation,JsonPointer,JsonPointer	jsonpatch: newMoveOperation(path: JsonPointer; fromPath: JsonPointer): MoveOperation	
 TestOperation	jsonpatch.html#TestOperation	jsonpatch: TestOperation	
+newTestOperation	jsonpatch.html#newTestOperation,JsonPointer,JsonNode	jsonpatch: newTestOperation(path: JsonPointer; value: JsonNode): TestOperation	
 CopyOperation	jsonpatch.html#CopyOperation	jsonpatch: CopyOperation	
+newCopyOperation	jsonpatch.html#newCopyOperation,JsonPointer,JsonPointer	jsonpatch: newCopyOperation(path: JsonPointer; fromPath: JsonPointer): CopyOperation	
 JsonPatch	jsonpatch.html#JsonPatch	jsonpatch: JsonPatch	
+initJsonPatch	jsonpatch.html#initJsonPatch,seq[Operation]	jsonpatch: initJsonPatch(operations: seq[Operation]): JsonPatch	
+initJsonPatch	jsonpatch.html#initJsonPatch,varargs[Operation]	jsonpatch: initJsonPatch(operations: varargs[Operation]): JsonPatch	
+len	jsonpatch.html#len,JsonPatch	jsonpatch: len(p: JsonPatch): Natural	
+patch	jsonpatch.html#patch,JsonNode,seq[Operation]	jsonpatch: patch(doc: JsonNode; operations: seq[Operation]): JsonNode	
 patch	jsonpatch.html#patch,JsonNode,JsonPatch	jsonpatch: patch(doc: JsonNode; patch: JsonPatch): JsonNode	
+diff	jsonpatch.html#diff,JsonNode,JsonNode	jsonpatch: diff(src: JsonNode; dst: JsonNode): JsonPatch	
 to	jsonpatch.html#to,JsonNode,typedesc[T]	jsonpatch: to[T: Operation](node: JsonNode; t: typedesc[T]): T	
 to	jsonpatch.html#to,JsonNode,typedesc[T]_2	jsonpatch: to[T: JsonPatch](node: JsonNode; t: typedesc[T]): T	
 `%`	jsonpatch.html#%,Operation	jsonpatch: `%`(op: Operation): JsonNode	
