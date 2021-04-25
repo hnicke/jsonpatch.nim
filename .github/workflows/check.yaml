@@ -20,9 +20,9 @@ jobs:
           nim-version: devel
 
       - name: check formatting
-        run:
-          - nimble fmt
-          - [ "$(git status -s)" ]  && echo "Found unformatted files" >&2 && exit 1
+        run: |
+          nimble fmt
+          [ "$(git status -s)" ]  && echo "Found unformatted files" >&2 && exit 1
 
       - name: Run tests
         run: nimble test -y
