@@ -1,6 +1,6 @@
 import
   jsonpatch / jsonpointer,
-  std / [json, options, strformat, sequtils, strutils, sets, tables]
+  std / [json, options, strformat, sequtils, strutils, sets]
 
 export
   jsonpointer.JsonPointerError,

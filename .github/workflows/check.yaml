@@ -13,4 +13,7 @@ jobs:
           path: ~/.nimble
           key: nimble-${{ hashFiles('*.nimble') }}
       - uses: jiro4989/setup-nim-action@v1
+        with:
+          # due to a bug with iterators, need version > 1.
+          nim-version: devel
       - run: nimble test -y

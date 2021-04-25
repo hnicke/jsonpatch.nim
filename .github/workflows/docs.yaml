@@ -19,7 +19,8 @@ jobs:
       - uses: actions/checkout@v1
       - uses: jiro4989/setup-nim-action@v1
         with:
-          nim-version: ${{ env.nim-version }}
+          # due to a bug with iterators, need version > 1.5
+          nim-version: devel
       - run: nimble doc --index:on --project --out:${{ env.deploy-dir }} ${{ env.nim-src }}
       - run: mv .gh-pages/jsonpatch.html .gh-pages/index.html
       - name: Deploy documents
