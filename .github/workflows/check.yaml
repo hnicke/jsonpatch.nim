@@ -23,7 +23,6 @@ jobs:
         uses: juancarlospaco/nimpretty-action@main
         with:
           indent: 2
-          folders: "src,tests"
           maxLineLen: 80
 
       - name: Commit nimpretty fixes
