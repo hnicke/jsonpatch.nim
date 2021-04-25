@@ -242,7 +242,6 @@ func diff*(src: JsonNode, dst: JsonNode): JsonPatch =
 proc to*[T: Operation](node: JsonNode, t: typedesc[T]): T =
   case node.kind
   of JObject:
-    # path, value, from
     let op = parseEnum[OperationKind](node["op"].getStr())
     let path = node["path"].to(JsonPointer)
     case op

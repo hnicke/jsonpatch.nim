@@ -4,7 +4,7 @@ import
 
 template diffCheck(d1, d2: JsonNode): untyped =
   let patch = diff(d1, d2)
-  echo %patch
+  echo "        ,.-> patch: ", %patch
   check d1.patch(patch) == d2
 
 template diffCheck(d1, d2: untyped): untyped =
@@ -54,23 +54,22 @@ suite "diff":
     ( %* {"foo": {"bar": "baz"}}).diffCheck ( %* {"foo": ["bar"]})
 
   test "append item to array":
-    ( %* {"foo": ["bar"]}).diffCheck ( %* {"foo": ["bar", "baz"]})
+    ( %* ["foo"]).diffCheck ( %* ["foo", "bar"])
 
   test "append two items to array":
-    (%* {"foo": ["bar"]}).diffCheck (%* {"foo": ["bar", "baz", "foobar"]})
+    (%* ["foo"]).diffCheck (%* ["foo", "bar", "baz"])
 
   test "remove item from array":
-    (%* {"foo": ["bar", "baz"]}).diffCheck (%* {"foo": ["bar"]})
+    (%* ["foo", "bar"]).diffCheck (%* ["bar"])
 
   test "remove two items from array":
-    (%* {"foo": ["bar", "baz", "foobar"]}).diffCheck (%* {"foo": ["bar"]})
+    (%* ["foo", "bar", "baz"]).diffCheck (%* ["foo"])
 
   test "multiple occourences of same item in src and target array":
-    (%* {"foo": ["bar", "bar"]}).diffCheck (%* {"foo": ["bar", "bar", "bar"]})
+    (%* ["foo", "bar"]).diffCheck (%* ["foo", "bar", "bar"])
 
   test "replace item in array":
-    (%* {"foo": ["bar", "baz"]}).diffCheck (%* {"foo": ["bar", "foobar"]})
+    (%* ["foo", "bar"]).diffCheck (%* ["for", "bar", "baz"])
     
   test "add member to object, nested in array":
       (%* {"foo": [{"bar": "baz"}]}).diffCheck (%* {"foo": [{"bar": "baz", "foobar": "foobaz"}]})
-
