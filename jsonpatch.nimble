@@ -20,3 +20,8 @@ task updateTestData, "Fetch the latest test data":
   mkDir testDataDir
   for file in ["tests.json", "spec_tests.json"]:
     exec &"curl {testDataUrl}/{file} > {testDataDir}/{file}"
+
+task fmt, "format the codebase":
+  exec r"git ls-files . | grep '\.nim$' | xargs nimpretty"
+    echo "Formatted source code"
+

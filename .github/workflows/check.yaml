@@ -2,18 +2,36 @@ name: Check
 on: push
 jobs:
   test:
-    name: Run tests
+    name: Run checks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+
       - name: Cache nimble
         id: cache-nimble
         uses: actions/cache@v1
         with:
           path: ~/.nimble
           key: nimble-${{ hashFiles('*.nimble') }}
+
       - uses: jiro4989/setup-nim-action@v1
         with:
-          # due to a bug with iterators, need version > 1.
+          # due to a bug with iterators, need version >= 1.5.1
           nim-version: devel
-      - run: nimble test -y
+
+      - name: Run nimpretty
+        uses: juancarlospaco/nimpretty-action@main
+        with:
+          indent: 2
+          folders: "src,tests"
+          maxLineLen: 80
+
+      - name: Commit nimpretty fixes
+        uses: EndBug/add-and-commit@v5  # https://github.com/EndBug/add-and-commit
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run tests
+        run: nimble test -y
+
+        
