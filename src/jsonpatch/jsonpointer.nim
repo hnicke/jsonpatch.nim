@@ -17,7 +17,7 @@ type
     of JsonArray: idx*: int
   JsonPointerError* = object of CatchableError
 
-proc toJsonPointer*(jsonPointer: string): JsonPointer =
+func toJsonPointer*(jsonPointer: string): JsonPointer =
   ## See https://tools.ietf.org/html/rfc6901
   if not jsonPointer.startsWith("/") and jsonPointer.len > 0:
     raise newException(JsonPointerError,
@@ -35,7 +35,7 @@ proc `$`*(p: JsonPointer): string =
   else:
     result = ""
 
-proc parent*(jsonPointer: JsonPointer): Option[JsonPointer] =
+func parent*(jsonPointer: JsonPointer): Option[JsonPointer] =
   case jsonPointer.segments.len
   of 0: none(JsonPointer)
   else: some JsonPointer(segments: jsonPointer.segments[0..^2])
