@@ -28,6 +28,13 @@ method apply(op: Operation, doc: JsonNode): JsonNode {.base,
   assert false, "missing impl: abstract base method"
 
 func patch*(doc: JsonNode, op: Operation): JsonNode =
+  ## Apply patch `operation` to source document `doc`.
+  runnableExamples:
+    import json
+    let src = %* {"foo": "bar"}
+    let operation = newReplaceOperation("/foo".toJsonPointer, %* "baz")
+    let dst = %* {"foo": "baz"}
+    assert dst == src.patch(operation)
   result = op.apply(doc)
   assert result != nil
 
@@ -188,6 +195,12 @@ func patch*(doc: JsonNode, operations: seq[Operation]): JsonNode =
   result = operations.foldl(a.patch(b), doc)
 
 func patch*(doc: JsonNode, patch: JsonPatch): JsonNode =
+  runnableExamples:
+    import json
+    let src = %* {"foo": "bar"}
+    let dst = %* {"foo": "baz"}
+    let patch = src.diff(dst)
+    assert dst == src.patch(patch)
   return doc.patch(patch.operations)
 
 func recursiveDiff(src: JsonNode, dst: JsonNode, root: JsonPointer): seq[Operation]
@@ -264,6 +277,12 @@ func recursiveDiff(src: JsonNode, dst: JsonNode, root: JsonPointer): seq[Operati
       result.add(newReplaceOperation(root, dst))
 
 func diff*(src: JsonNode, dst: JsonNode): JsonPatch =
+  runnableExamples:
+    import json
+    let src = %* {"foo": "bar"}
+    let dst = %* {"foo": "baz"}
+    let patch = src.diff(dst)
+    assert dst == src.patch(patch)
   return initJsonPatch(recursiveDiff(src, dst, "".toJsonPointer))
 
 
