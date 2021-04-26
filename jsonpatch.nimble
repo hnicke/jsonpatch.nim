@@ -25,3 +25,9 @@ task fmt, "format the codebase":
   exec r"git ls-files . | grep '\.nim$' | xargs nimpretty"
   echo "Formatted source code"
 
+task docGen, "generate docs":
+    selfExec "doc --git.url:https://github.com/hnicke/jsonpatch.nim --git.commit:master --git.devel=master src/jsonpatch.nim"
+
+task docOpen, "open docs":
+    exec "xdg-open out/jsonpatch.html"
+
