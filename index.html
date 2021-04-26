@@ -331,7 +331,13 @@ window.addEventListener('DOMContentLoaded', main);
     <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
-
+Apply patch <tt class="docutils literal"><span class="pre"><span class="Identifier">operation</span></span></tt> to source document <tt class="docutils literal"><span class="pre"><span class="Identifier">doc</span></span></tt>.
+<p><strong class="examples_text">Example:</strong></p>
+<pre class="listing"><span class="Keyword">import</span><span class="Whitespace"> </span><span class="Identifier">json</span><span class="Whitespace">
+</span><span class="Keyword">let</span><span class="Whitespace"> </span><span class="Identifier">src</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Operator">%*</span><span class="Whitespace"> </span><span class="Punctuation">{</span><span class="StringLit">&quot;foo&quot;</span><span class="Punctuation">:</span><span class="Whitespace"> </span><span class="StringLit">&quot;bar&quot;</span><span class="Punctuation">}</span><span class="Whitespace">
+</span><span class="Keyword">let</span><span class="Whitespace"> </span><span class="Identifier">operation</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Identifier">newReplaceOperation</span><span class="Punctuation">(</span><span class="StringLit">&quot;/foo&quot;</span><span class="Operator">.</span><span class="Identifier">toJsonPointer</span><span class="Punctuation">,</span><span class="Whitespace"> </span><span class="Operator">%*</span><span class="Whitespace"> </span><span class="StringLit">&quot;baz&quot;</span><span class="Punctuation">)</span><span class="Whitespace">
+</span><span class="Keyword">let</span><span class="Whitespace"> </span><span class="Identifier">dst</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Operator">%*</span><span class="Whitespace"> </span><span class="Punctuation">{</span><span class="StringLit">&quot;foo&quot;</span><span class="Punctuation">:</span><span class="Whitespace"> </span><span class="StringLit">&quot;baz&quot;</span><span class="Punctuation">}</span><span class="Whitespace">
+</span><span class="Identifier">assert</span><span class="Whitespace"> </span><span class="Identifier">dst</span><span class="Whitespace"> </span><span class="Operator">==</span><span class="Whitespace"> </span><span class="Identifier">src</span><span class="Operator">.</span><span class="Identifier">patch</span><span class="Punctuation">(</span><span class="Identifier">operation</span><span class="Punctuation">)</span></pre>
 
 </dd>
 <a id="newAddOperation,JsonPointer,JsonNode"></a>
@@ -418,6 +424,12 @@ window.addEventListener('DOMContentLoaded', main);
 <dd>
 
 
+<p><strong class="examples_text">Example:</strong></p>
+<pre class="listing"><span class="Keyword">import</span><span class="Whitespace"> </span><span class="Identifier">json</span><span class="Whitespace">
+</span><span class="Keyword">let</span><span class="Whitespace"> </span><span class="Identifier">src</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Operator">%*</span><span class="Whitespace"> </span><span class="Punctuation">{</span><span class="StringLit">&quot;foo&quot;</span><span class="Punctuation">:</span><span class="Whitespace"> </span><span class="StringLit">&quot;bar&quot;</span><span class="Punctuation">}</span><span class="Whitespace">
+</span><span class="Keyword">let</span><span class="Whitespace"> </span><span class="Identifier">dst</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Operator">%*</span><span class="Whitespace"> </span><span class="Punctuation">{</span><span class="StringLit">&quot;foo&quot;</span><span class="Punctuation">:</span><span class="Whitespace"> </span><span class="StringLit">&quot;baz&quot;</span><span class="Punctuation">}</span><span class="Whitespace">
+</span><span class="Keyword">let</span><span class="Whitespace"> </span><span class="Identifier">patch</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Identifier">src</span><span class="Operator">.</span><span class="Identifier">diff</span><span class="Punctuation">(</span><span class="Identifier">dst</span><span class="Punctuation">)</span><span class="Whitespace">
+</span><span class="Identifier">assert</span><span class="Whitespace"> </span><span class="Identifier">dst</span><span class="Whitespace"> </span><span class="Operator">==</span><span class="Whitespace"> </span><span class="Identifier">src</span><span class="Operator">.</span><span class="Identifier">patch</span><span class="Punctuation">(</span><span class="Identifier">patch</span><span class="Punctuation">)</span></pre>
 
 </dd>
 <a id="diff,JsonNode,JsonNode"></a>
@@ -426,6 +438,12 @@ window.addEventListener('DOMContentLoaded', main);
 <dd>
 
 
+<p><strong class="examples_text">Example:</strong></p>
+<pre class="listing"><span class="Keyword">import</span><span class="Whitespace"> </span><span class="Identifier">json</span><span class="Whitespace">
+</span><span class="Keyword">let</span><span class="Whitespace"> </span><span class="Identifier">src</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Operator">%*</span><span class="Whitespace"> </span><span class="Punctuation">{</span><span class="StringLit">&quot;foo&quot;</span><span class="Punctuation">:</span><span class="Whitespace"> </span><span class="StringLit">&quot;bar&quot;</span><span class="Punctuation">}</span><span class="Whitespace">
+</span><span class="Keyword">let</span><span class="Whitespace"> </span><span class="Identifier">dst</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Operator">%*</span><span class="Whitespace"> </span><span class="Punctuation">{</span><span class="StringLit">&quot;foo&quot;</span><span class="Punctuation">:</span><span class="Whitespace"> </span><span class="StringLit">&quot;baz&quot;</span><span class="Punctuation">}</span><span class="Whitespace">
+</span><span class="Keyword">let</span><span class="Whitespace"> </span><span class="Identifier">patch</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Identifier">src</span><span class="Operator">.</span><span class="Identifier">diff</span><span class="Punctuation">(</span><span class="Identifier">dst</span><span class="Punctuation">)</span><span class="Whitespace">
+</span><span class="Identifier">assert</span><span class="Whitespace"> </span><span class="Identifier">dst</span><span class="Whitespace"> </span><span class="Operator">==</span><span class="Whitespace"> </span><span class="Identifier">src</span><span class="Operator">.</span><span class="Identifier">patch</span><span class="Punctuation">(</span><span class="Identifier">patch</span><span class="Punctuation">)</span></pre>
 
 </dd>
 <a id="to,JsonNode,typedesc[T]"></a>
@@ -471,7 +489,7 @@ window.addEventListener('DOMContentLoaded', main);
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2021-04-25 20:16:19 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2021-04-26 15:04:43 UTC</small>
       </div>
     </div>
   </div>
