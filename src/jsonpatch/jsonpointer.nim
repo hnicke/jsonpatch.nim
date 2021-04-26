@@ -1,3 +1,7 @@
+##[
+This module implements JSON pointers according to [RFC 6901](https://tools.ietf.org/html/rfc6901).
+]##
+
 import
   std/[json, strutils, strformat, sequtils, options]
 

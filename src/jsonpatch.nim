@@ -1,3 +1,7 @@
+##[
+This module implements JSON Patch according to [RFC 6902](https://tools.ietf.org/html/rfc6902).
+]##
+
 import
   jsonpatch / jsonpointer,
   std / [json, options, strformat, sequtils, strutils, sets]
@@ -75,7 +79,7 @@ type RemoveOperation* = ref object of Operation
 
 proc newRemoveOperation*(path: JsonPointer): RemoveOperation =
   if path.isRoot:
-    raise newException(JsonPatchError, "path cant point to root")
+    raise newException(JsonPatchError, "path of remove operation must not point to root")
   new result
   result.kind = Remove
   result.path = path
@@ -187,14 +191,24 @@ proc initJsonPatch*(operations: seq[Operation]): JsonPatch =
 proc initJsonPatch*(operations: varargs[Operation]): JsonPatch =
   JsonPatch(operations: @operations)
 
-func len*(p: JsonPatch): Natural = return p.operations.len
+func len*(p: JsonPatch): Natural =
+  ## Returns the number of operations of patch `p`.
+  return p.operations.len
 
 func patch*(doc: JsonNode, operations: seq[Operation]): JsonNode =
+  ##[
+  Applies sequence of `operations` to `doc`.
+
+  The operations are applied in the order they appear in the sequence.
+  ]##
   if operations.len == 0:
     return doc
   result = operations.foldl(a.patch(b), doc)
 
 func patch*(doc: JsonNode, patch: JsonPatch): JsonNode =
+  ##[
+  Applies `patch` to `doc` and returns the resulting JSON document.
+  ]##
   runnableExamples:
     import json
     let src = %* {"foo": "bar"}
@@ -277,6 +291,7 @@ func recursiveDiff(src: JsonNode, dst: JsonNode, root: JsonPointer): seq[Operati
       result.add(newReplaceOperation(root, dst))
 
 func diff*(src: JsonNode, dst: JsonNode): JsonPatch =
+  ## Diffs the JSON document `src` with `dst` and returns the resulting JSON patch.
   runnableExamples:
     import json
     let src = %* {"foo": "bar"}
