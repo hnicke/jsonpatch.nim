@@ -165,7 +165,7 @@ window.addEventListener('DOMContentLoaded', main);
   </ul>
   <ul class="simple nested-toc-section">diff
       <li><a class="reference" href="#diff%2CJsonNode%2CJsonNode"
-    title="diff(src: JsonNode; dst: JsonNode): JsonPatch">diff(src: JsonNode; dst: JsonNode): JsonPatch</a></li>
+    title="diff(src, dst: JsonNode): JsonPatch">diff(src, dst: JsonNode): JsonPatch</a></li>
 
   </ul>
   <ul class="simple nested-toc-section">to
@@ -435,7 +435,7 @@ Applies <tt class="docutils literal"><span class="pre"><span class="Identifier">
 
 </dd>
 <a id="diff,JsonNode,JsonNode"></a>
-<dt><pre><span class="Keyword">func</span> <a href="#diff%2CJsonNode%2CJsonNode"><span class="Identifier">diff</span></a><span class="Other">(</span><span class="Identifier">src</span><span class="Other">:</span> <span class="Identifier">JsonNode</span><span class="Other">;</span> <span class="Identifier">dst</span><span class="Other">:</span> <span class="Identifier">JsonNode</span><span class="Other">)</span><span class="Other">:</span> <a href="jsonpatch.html#JsonPatch"><span class="Identifier">JsonPatch</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">JsonPointerError</span><span class="Other">,</span>
+<dt><pre><span class="Keyword">func</span> <a href="#diff%2CJsonNode%2CJsonNode"><span class="Identifier">diff</span></a><span class="Other">(</span><span class="Identifier">src</span><span class="Other">,</span> <span class="Identifier">dst</span><span class="Other">:</span> <span class="Identifier">JsonNode</span><span class="Other">)</span><span class="Other">:</span> <a href="jsonpatch.html#JsonPatch"><span class="Identifier">JsonPatch</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">JsonPointerError</span><span class="Other">,</span>
     <span class="Identifier">ValueError</span><span class="Other">,</span> <span class="Identifier">JsonPatchError</span><span class="Other">,</span> <span class="Identifier">KeyError</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
@@ -491,7 +491,7 @@ Diffs the JSON document <tt class="docutils literal"><span class="pre"><span cla
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2021-04-27 17:33:31 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2021-04-27 17:39:28 UTC</small>
       </div>
     </div>
   </div>
