@@ -218,10 +218,9 @@ func patch*(doc: JsonNode, patch: JsonPatch): JsonNode =
     assert dst == src.patch(patch)
   doc.patch(patch.operations)
 
-func recursiveDiff(src: JsonNode, dst: JsonNode, root: JsonPointer): seq[Operation]
+func recursiveDiff(src, dst: JsonNode, root: JsonPointer): seq[Operation]
 
-func recursiveDiff(src: seq[JsonNode], dst: seq[JsonNode],
-    root: JsonPointer): seq[Operation] =
+func recursiveDiff(src, dst: seq[JsonNode], root: JsonPointer): seq[Operation] =
   var src = src
   var dst = dst
   var idx = 0
@@ -263,7 +262,7 @@ func recursiveDiff(src: seq[JsonNode], dst: seq[JsonNode],
       inc idx
 
 
-func recursiveDiff(src: JsonNode, dst: JsonNode, root: JsonPointer): seq[Operation] =
+func recursiveDiff(src, dst: JsonNode, root: JsonPointer): seq[Operation] =
   case src.kind
   of JObject:
     case dst.kind
@@ -291,7 +290,7 @@ func recursiveDiff(src: JsonNode, dst: JsonNode, root: JsonPointer): seq[Operati
     if src != dst:
       result.add(newReplaceOperation(root, dst))
 
-func diff*(src: JsonNode, dst: JsonNode): JsonPatch =
+func diff*(src, dst: JsonNode): JsonPatch =
   ## Diffs the JSON document `src` with `dst` and returns the resulting JSON patch.
   runnableExamples:
     import json

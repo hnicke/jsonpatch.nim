@@ -94,7 +94,7 @@ func resolve*(root: JsonNode, jsonPointer: string): Option[JsonNode] =
 
 func isRoot*(p: JsonPointer): bool = p.segments.len == 0
 
-func `/`*(p1: JsonPointer, p2: JsonPointer): JsonPointer =
+func `/`*(p1, p2: JsonPointer): JsonPointer =
   ## Concatenate pointers
   result.segments = p1.segments & p2.segments
 
