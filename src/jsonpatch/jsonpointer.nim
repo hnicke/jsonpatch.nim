@@ -27,7 +27,7 @@ func toJsonPointer*(jsonPointer: string): JsonPointer =
     .mapIt(it.multiReplace(("~1", "/"), ("~0", "~")))
   if segments.len > 0:
     segments.delete(0)
-  return JsonPointer(segments: segments)
+  JsonPointer(segments: segments)
 
 proc `$`*(p: JsonPointer): string =
   if p.segments.len > 0:
@@ -85,7 +85,7 @@ func resolve*(root: JsonNode, jsonPointer: JsonPointer): Option[JsonNode] =
         node = node[key.idx]
       else:
         return none(JsonNode)
-  return some(node)
+  some(node)
 
 
 func resolve*(root: JsonNode, jsonPointer: string): Option[JsonNode] =

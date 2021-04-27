@@ -119,9 +119,9 @@ proc newReplaceOperation*(path: JsonPointer,
 
 method apply(op: ReplaceOperation, doc: JsonNode): JsonNode =
   if op.path.isRoot:
-    return op.value
+    op.value
   else:
-    return doc
+    doc
       .patch(newRemoveOperation(path = op.path))
       .patch(newAddOperation(path = op.path, value = op.value))
 
@@ -193,7 +193,7 @@ proc initJsonPatch*(operations: varargs[Operation]): JsonPatch =
 
 func len*(p: JsonPatch): Natural =
   ## Returns the number of operations of patch `p`.
-  return p.operations.len
+  p.operations.len
 
 func patch*(doc: JsonNode, operations: seq[Operation]): JsonNode =
   ##[
@@ -202,8 +202,9 @@ func patch*(doc: JsonNode, operations: seq[Operation]): JsonNode =
   The operations are applied in the order they appear in the sequence.
   ]##
   if operations.len == 0:
-    return doc
-  result = operations.foldl(a.patch(b), doc)
+    doc
+  else:
+    operations.foldl(a.patch(b), doc)
 
 func patch*(doc: JsonNode, patch: JsonPatch): JsonNode =
   ##[
@@ -215,7 +216,7 @@ func patch*(doc: JsonNode, patch: JsonPatch): JsonNode =
     let dst = %* {"foo": "baz"}
     let patch = src.diff(dst)
     assert dst == src.patch(patch)
-  return doc.patch(patch.operations)
+  doc.patch(patch.operations)
 
 func recursiveDiff(src: JsonNode, dst: JsonNode, root: JsonPointer): seq[Operation]
 
@@ -298,7 +299,7 @@ func diff*(src: JsonNode, dst: JsonNode): JsonPatch =
     let dst = %* {"foo": "baz"}
     let patch = src.diff(dst)
     assert dst == src.patch(patch)
-  return initJsonPatch(recursiveDiff(src, dst, "".toJsonPointer))
+  initJsonPatch(recursiveDiff(src, dst, "".toJsonPointer))
 
 
 #------------- MARSHALLING ------------------------#
@@ -310,21 +311,21 @@ proc to*[T: Operation](node: JsonNode, t: typedesc[T]): T =
     case op
     of Add:
       let value = node["value"]
-      return newAddOperation(path, value)
+      newAddOperation(path, value)
     of Remove:
-      return newRemoveOperation(path)
+      newRemoveOperation(path)
     of Move:
       let fromPath = node["from"].to(JsonPointer)
-      return newMoveOperation(path, fromPath)
+      newMoveOperation(path, fromPath)
     of Copy:
       let fromPath = node["from"].to(JsonPointer)
-      return newCopyOperation(path, fromPath)
+      newCopyOperation(path, fromPath)
     of Replace:
       let value = node["value"]
-      return newReplaceOperation(path, value)
+      newReplaceOperation(path, value)
     of Test:
       let value = node["value"]
-      return newTestOperation(path, value)
+      newTestOperation(path, value)
   else:
     raise newException(JsonPatchError, &"Operation must be array, but was {node.kind}")
 
